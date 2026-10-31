@@ -84,4 +84,32 @@ describe('RaceStage', () => {
     expect(stage.status()).toMatch(/^.+ wins round 1 in \d:\d\d\.\d\d\. Round 2 lines up next\.$/)
     expect(stage.announcement()).toMatch(/^.+ wins round 1 in \d:\d\d\.\d\d\.$/)
   })
+
+  it('lines up the round on the track and shows places after the finish', async () => {
+    const stage = mountStage()
+    expect(stage.wrapper.findAll('.mover')).toHaveLength(0)
+
+    await stage.generate().trigger('click')
+    const movers = stage.wrapper.findAll('.mover')
+    expect(movers).toHaveLength(10)
+    expect(movers.every((mover) => mover.attributes('style')!.includes('--progress: 0'))).toBe(true)
+    expect(stage.wrapper.findAll('svg.galloping')).toHaveLength(0)
+
+    stage.race.start()
+    stage.race.completeRound(0)
+    await stage.wrapper.vm.$nextTick()
+    const places = stage.wrapper.findAll('[data-testid="place"]').map((place) => place.text())
+    expect([...places].sort((a, b) => Number(a) - Number(b))).toEqual([
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '8',
+      '9',
+      '10',
+    ])
+  })
 })

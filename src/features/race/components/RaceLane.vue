@@ -1,0 +1,105 @@
+<script setup lang="ts">
+import HorseFigure from '@/features/horses/components/HorseFigure.vue'
+import type { Horse } from '@/features/horses/model/horse'
+import ColorChip from '@/shared/components/ColorChip.vue'
+
+withDefaults(
+  defineProps<{
+    lane: number
+    /** Null for an empty lane before a schedule exists. */
+    horse: Horse | null
+    progress?: number
+    place?: number | null
+    isLeader?: boolean
+    galloping?: boolean
+  }>(),
+  { progress: 0, place: null, isLeader: false, galloping: false },
+)
+</script>
+
+<template>
+  <li class="lane" :class="{ emphasised: isLeader || place === 1 }" :data-lane="lane">
+    <div class="label">
+      <ColorChip :color="horse?.color.hex" :label="lane" />
+      <span v-if="horse" class="name" lang="tr">{{ horse.name }}</span>
+    </div>
+    <div class="run">
+      <!-- The mover spans the run minus the horse's length; translating it by 100% puts the nose on the line. -->
+      <div v-if="horse" class="mover" :style="{ '--progress': progress }">
+        <HorseFigure :color="horse.color.hex" :lane="lane" :galloping="galloping" />
+      </div>
+    </div>
+    <span class="place" :class="{ first: place === 1 }" data-testid="place">{{ place ?? '' }}</span>
+  </li>
+</template>
+
+<style scoped>
+.lane {
+  display: grid;
+  grid-template-columns: 196px minmax(0, 1fr) 40px;
+  align-items: center;
+  height: 42px;
+}
+
+.lane + .lane {
+  border-top: 1px solid rgb(255 255 255 / 0.75);
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 0 var(--space-3) 0 14px;
+}
+
+.name {
+  overflow: hidden;
+  font-size: 0.88rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.emphasised .name {
+  font-weight: 600;
+}
+
+.run {
+  position: relative;
+  height: 100%;
+  border-right: 2px solid rgb(29 29 31 / 0.55);
+  border-left: 1px solid var(--color-track-line);
+}
+
+.mover {
+  position: absolute;
+  inset: 0 52px 0 0;
+  transform: translateX(calc(var(--progress) * 100%));
+  will-change: transform;
+}
+
+.mover :deep(svg) {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 60px;
+  height: 40px;
+  margin-top: -21px;
+}
+
+.place {
+  justify-self: center;
+  font-size: 0.82rem;
+}
+
+.place.first {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: #fff;
+  font-weight: 600;
+}
+</style>

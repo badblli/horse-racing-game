@@ -1,3 +1,5 @@
+import type { Horse } from '@/features/horses/model/horse'
+
 /** One horse's run through a round, as race-clock times at every checkpoint. */
 export interface RunnerTrajectory {
   readonly horseId: string
@@ -24,4 +26,16 @@ export interface Placing {
   readonly horseId: string
   readonly lane: number
   readonly finishTime: number
+}
+
+/** What one lane of the track shows at the current moment. */
+export interface TrackLane {
+  readonly lane: number
+  readonly horse: Horse
+  /** 0 at the start, 1 at the finish line. */
+  readonly progress: number
+  /** Finishing position, once the round has a result. */
+  readonly place: number | null
+  readonly isLeader: boolean
+  readonly galloping: boolean
 }

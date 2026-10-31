@@ -9,11 +9,14 @@ import {
   describeRaceStatus,
   type RaceStatusInput,
 } from '../model/describe-status'
-import { leaderAt } from '../model/standings'
+import type { TrackLane } from '../model/race'
+import { distanceAt, leaderAt } from '../model/standings'
 import { useRaceStore } from '../store'
+import LaneKey from './LaneKey.vue'
 import RaceAnnouncer from './RaceAnnouncer.vue'
 import RaceControls from './RaceControls.vue'
 import RaceHeading from './RaceHeading.vue'
+import RaceTrack from './RaceTrack.vue'
 
 const props = withDefaults(defineProps<{ rate?: number }>(), { rate: PLAYBACK_RATE })
 
@@ -23,17 +26,41 @@ const { time } = useRaceClock({ rate: props.rate })
 
 const nameOf = (horseId: string) => horses.horsesById.get(horseId)?.name ?? horseId
 
-const statusInput = computed<RaceStatusInput>(() => {
+// Results are appended in running order, so round i's result sits at index i.
+const result = computed(() => race.results[race.currentRoundIndex] ?? null)
+const inPlay = computed(() => race.status === 'running' || race.status === 'paused')
+const leader = computed(() => {
   const simulation = race.currentSimulation
-  // Results are appended in running order, so round i's result sits at index i.
-  const winner = race.results[race.currentRoundIndex]?.placings[0]
-  const inPlay = race.status === 'running' || race.status === 'paused'
-  const leader = simulation && inPlay && !winner ? leaderAt(simulation, time.value) : null
+  return simulation && inPlay.value && !result.value ? leaderAt(simulation, time.value) : null
+})
 
+const lanes = computed<TrackLane[]>(() => {
+  const simulation = race.currentSimulation
+  if (!simulation) return []
+  const places = new Map(
+    result.value?.placings.map((placing) => [placing.horseId, placing.position]),
+  )
+
+  return simulation.runners.flatMap((runner) => {
+    const horse = horses.horsesById.get(runner.horseId)
+    if (!horse) return []
+    return {
+      lane: runner.lane,
+      horse,
+      progress: distanceAt(runner, time.value) / simulation.distance,
+      place: places.get(runner.horseId) ?? null,
+      isLeader: runner === leader.value,
+      galloping: inPlay.value && time.value > 0 && time.value < runner.finishTime,
+    }
+  })
+})
+
+const statusInput = computed<RaceStatusInput>(() => {
+  const winner = result.value?.placings[0]
   return {
     status: race.status,
     roundNumber: race.currentRound?.number ?? null,
-    leaderName: leader ? nameOf(leader.horseId) : null,
+    leaderName: leader.value ? nameOf(leader.value.horseId) : null,
     winner: winner ? { name: nameOf(winner.horseId), finishTime: winner.finishTime } : null,
   }
 })
@@ -59,6 +86,8 @@ const announcement = computed(() => describeRaceAnnouncement(statusInput.value))
         @resume="race.resume()"
       />
     </div>
+    <RaceTrack :lanes="lanes" :phase="race.status" />
+    <LaneKey :lanes="lanes" />
     <RaceAnnouncer :message="announcement" />
   </section>
 </template>

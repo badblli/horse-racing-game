@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
+import { contrastRatio, readableInk } from '@/shared/lib/color'
 import { createRng, deriveSeed } from '@/shared/lib/random'
 
 import { createRoster } from '../model/create-roster'
@@ -69,5 +70,13 @@ describe('createRoster', () => {
     expect(roster.every((horse) => Object.isFrozen(horse) && Object.isFrozen(horse.color))).toBe(
       true,
     )
+  })
+})
+
+describe('palette legibility', () => {
+  it('keeps every chip number readable with the chosen ink', () => {
+    for (const color of HORSE_COLORS) {
+      expect(contrastRatio(color.hex, readableInk(color.hex))).toBeGreaterThanOrEqual(3)
+    }
   })
 })
