@@ -6,7 +6,13 @@ import { createSchedule } from '@/features/schedule/model/create-schedule'
 import type { Round } from '@/features/schedule/model/round'
 import { createRng, deriveSeed } from '@/shared/lib/random'
 
-import { initialRaceState, transition, type RaceEvent, type RaceState } from './model/lifecycle'
+import {
+  initialRaceState,
+  transition,
+  type RaceAction,
+  type RaceEvent,
+  type RaceState,
+} from './model/lifecycle'
 import type { Placing, RoundSimulation } from './model/race'
 import { simulateRound } from './model/simulate-round'
 import { placingsOf } from './model/standings'
@@ -32,6 +38,13 @@ export const useRaceStore = defineStore('race', () => {
   const currentRoundIndex = computed(() => state.value.currentRound)
   const currentRound = computed(() => schedule.value[state.value.currentRound] ?? null)
   const currentSimulation = computed(() => simulations.value[state.value.currentRound] ?? null)
+
+  // What the controls may offer comes from the transition table, not from the components.
+  const can = (event: RaceEvent) => transition(state.value, event) !== null
+  const canGenerate = computed(() => seed.value !== null && can({ type: 'generate' }))
+  const primaryAction = computed<RaceAction | null>(
+    () => (['start', 'pause', 'resume'] as const).find((type) => can({ type })) ?? null,
+  )
 
   /** Applies a lifecycle event; returns false and changes nothing when it is not allowed. */
   function dispatch(event: RaceEvent): boolean {
@@ -103,6 +116,8 @@ export const useRaceStore = defineStore('race', () => {
     currentRoundIndex,
     currentRound,
     currentSimulation,
+    canGenerate,
+    primaryAction,
     schedule,
     results,
     startSession,

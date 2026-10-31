@@ -18,6 +18,9 @@ export type RaceEvent =
   | { readonly type: 'completeRound'; readonly round: number }
   | { readonly type: 'advanceRound' }
 
+/** The race action a single Start / Pause / Resume button can offer. */
+export type RaceAction = 'start' | 'pause' | 'resume'
+
 export const initialRaceState: RaceState = Object.freeze({
   status: 'idle',
   currentRound: 0,

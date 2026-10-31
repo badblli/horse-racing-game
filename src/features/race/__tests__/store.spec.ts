@@ -145,3 +145,30 @@ describe('race store', () => {
     expect(race.results).toEqual([])
   })
 })
+
+describe('race store controls', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+  })
+
+  it('offers the action the lifecycle allows', () => {
+    const race = useRaceStore()
+    expect(race.canGenerate).toBe(false)
+
+    race.startSession(1923)
+    expect([race.canGenerate, race.primaryAction]).toEqual([true, null])
+
+    race.generate()
+    expect([race.canGenerate, race.primaryAction]).toEqual([true, 'start'])
+
+    race.start()
+    expect([race.canGenerate, race.primaryAction]).toEqual([false, 'pause'])
+
+    race.pause()
+    expect([race.canGenerate, race.primaryAction]).toEqual([true, 'resume'])
+
+    race.resume()
+    while (race.status === 'running') runRound(race)
+    expect([race.canGenerate, race.primaryAction]).toEqual([true, null])
+  })
+})

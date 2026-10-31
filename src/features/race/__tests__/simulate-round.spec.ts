@@ -6,7 +6,7 @@ import { createRng } from '@/shared/lib/random'
 
 import type { RoundSimulation } from '../model/race'
 import { simulateRound } from '../model/simulate-round'
-import { distanceAt, placingsOf } from '../model/standings'
+import { distanceAt, leaderAt, placingsOf } from '../model/standings'
 
 /** Ten horses with conditions 10, 20, … 100, running in that lane order. */
 const horses: Horse[] = Array.from({ length: 10 }, (_, i) => ({
@@ -133,5 +133,23 @@ describe('placingsOf', () => {
     }
 
     expect(placingsOf(simulation).map((placing) => placing.horseId)).toEqual(['b', 'c', 'a'])
+  })
+})
+
+describe('leaderAt', () => {
+  const simulation = simulateRound(round, horsesById, createRng(1923))
+
+  it('picks the runner furthest ahead', () => {
+    for (const time of [5, 30, 60, 90]) {
+      const leader = leaderAt(simulation, time)!
+      const best = Math.max(...simulation.runners.map((runner) => distanceAt(runner, time)))
+      expect(distanceAt(leader, time)).toBe(best)
+    }
+  })
+
+  it('names the eventual winner when the field is level', () => {
+    const [winner] = placingsOf(simulation)
+    expect(leaderAt(simulation, 0)!.horseId).toBe(winner!.horseId)
+    expect(leaderAt(simulation, simulation.duration)!.horseId).toBe(winner!.horseId)
   })
 })

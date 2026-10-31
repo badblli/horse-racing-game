@@ -1,12 +1,19 @@
 <script setup lang="ts">
+import RaceStage from '@/features/race/components/RaceStage.vue'
+
 import AppHeader from './AppHeader.vue'
+
+defineProps<{
+  /** Race seconds per real second; only the e2e build changes it. */
+  playbackRate?: number
+}>()
 </script>
 
 <template>
   <div class="app">
     <AppHeader />
     <main class="layout">
-      <div class="stage"><!-- RaceStage --></div>
+      <div class="stage"><RaceStage :rate="playbackRate" /></div>
       <div class="side"><!-- SchedulePanel, ResultsPanel --></div>
       <div class="horses"><!-- HorseRoster --></div>
     </main>

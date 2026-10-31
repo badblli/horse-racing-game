@@ -12,7 +12,7 @@ import { readRuntimeOptions } from './runtime-options'
 
 const options = readRuntimeOptions()
 const pinia = createPinia()
-const app = createApp(App)
+const app = createApp(App, { playbackRate: options.rate })
 
 app.use(pinia)
 // The roster is generated once here; Generate only builds new schedules over it.

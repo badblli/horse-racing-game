@@ -21,6 +21,23 @@ export function distanceAt(runner: RunnerTrajectory, time: number): number {
   return (low + (time - start) / (end - start)) * SEGMENT_LENGTH
 }
 
+/** The runner furthest ahead at `time`; on equal distance, the one that will finish first. */
+export function leaderAt(simulation: RoundSimulation, time: number): RunnerTrajectory | null {
+  let leader: RunnerTrajectory | null = null
+  let leaderDistance = -1
+  for (const runner of simulation.runners) {
+    const distance = distanceAt(runner, time)
+    if (
+      distance > leaderDistance ||
+      (distance === leaderDistance && leader && runner.finishTime < leader.finishTime)
+    ) {
+      leader = runner
+      leaderDistance = distance
+    }
+  }
+  return leader
+}
+
 /** Finishing order: fastest time first, and the lower lane on an exact tie. */
 export function placingsOf(simulation: RoundSimulation): readonly Placing[] {
   return Object.freeze(
