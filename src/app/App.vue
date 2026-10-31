@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import HorseRoster from '@/features/horses/components/HorseRoster.vue'
 import { useHorsesStore } from '@/features/horses/store'
 import RaceStage from '@/features/race/components/RaceStage.vue'
 import ResultsPanel from '@/features/race/components/ResultsPanel.vue'
@@ -30,7 +31,13 @@ const horses = useHorsesStore()
         />
         <ResultsPanel />
       </div>
-      <div class="horses"><!-- HorseRoster --></div>
+      <div class="horses">
+        <HorseRoster
+          :horses="horses.roster"
+          :lane-by-horse="race.laneByHorse"
+          :round-number="race.currentRound?.number ?? null"
+        />
+      </div>
     </main>
   </div>
 </template>

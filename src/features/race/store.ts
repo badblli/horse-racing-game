@@ -55,6 +55,13 @@ export const useRaceStore = defineStore('race', () => {
     })
   })
 
+  /** Lane of each horse in the round on the track; empty before a schedule and once all rounds are run. */
+  const laneByHorse = computed<ReadonlyMap<string, number>>(() => {
+    const round = currentRound.value
+    if (!round || state.value.status === 'finished') return new Map()
+    return new Map(round.horseIds.map((horseId, index) => [horseId, index + 1]))
+  })
+
   /** Winning horse id per completed round, in running order. */
   const winners = computed(() => results.value.map((result) => result.placings[0]?.horseId ?? null))
 
@@ -139,6 +146,7 @@ export const useRaceStore = defineStore('race', () => {
     primaryAction,
     schedule,
     roundStates,
+    laneByHorse,
     winners,
     results,
     startSession,

@@ -210,4 +210,21 @@ describe('race store schedule view', () => {
     expect(race.roundStates).toEqual(['done', 'done', 'done', 'done', 'done', 'done'])
     expect(race.winners).toHaveLength(6)
   })
+
+  it('maps each runner of the round on the track to its lane', () => {
+    const race = sessionStore()
+    expect(race.laneByHorse.size).toBe(0)
+
+    race.generate()
+    const lanesOf = (index: number) =>
+      new Map(race.schedule[index]!.horseIds.map((horseId, lane) => [horseId, lane + 1]))
+    expect(race.laneByHorse).toEqual(lanesOf(0))
+
+    race.start()
+    runRound(race)
+    expect(race.laneByHorse).toEqual(lanesOf(1))
+
+    while (race.status === 'running') runRound(race)
+    expect(race.laneByHorse.size).toBe(0)
+  })
 })
