@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useHorsesStore } from '@/features/horses/store'
 import RaceStage from '@/features/race/components/RaceStage.vue'
+import { useRaceStore } from '@/features/race/store'
+import SchedulePanel from '@/features/schedule/components/SchedulePanel.vue'
 
 import AppHeader from './AppHeader.vue'
 
@@ -7,6 +10,9 @@ defineProps<{
   /** Race seconds per real second; only the e2e build changes it. */
   playbackRate?: number
 }>()
+
+const race = useRaceStore()
+const horses = useHorsesStore()
 </script>
 
 <template>
@@ -14,7 +20,15 @@ defineProps<{
     <AppHeader />
     <main class="layout">
       <div class="stage"><RaceStage :rate="playbackRate" /></div>
-      <div class="side"><!-- SchedulePanel, ResultsPanel --></div>
+      <div class="side">
+        <SchedulePanel
+          :rounds="race.schedule"
+          :round-states="race.roundStates"
+          :winners="race.winners"
+          :horses-by-id="horses.horsesById"
+        />
+        <!-- ResultsPanel -->
+      </div>
       <div class="horses"><!-- HorseRoster --></div>
     </main>
   </div>

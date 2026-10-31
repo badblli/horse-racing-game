@@ -172,3 +172,42 @@ describe('race store controls', () => {
     expect([race.canGenerate, race.primaryAction]).toEqual([true, null])
   })
 })
+
+describe('race store schedule view', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+  })
+
+  it('tracks where each round stands and who won', () => {
+    const race = sessionStore()
+    expect(race.roundStates).toEqual([])
+
+    race.generate()
+    expect(race.roundStates).toEqual([
+      'next',
+      'upcoming',
+      'upcoming',
+      'upcoming',
+      'upcoming',
+      'upcoming',
+    ])
+
+    race.start()
+    expect(race.roundStates[0]).toBe('racing')
+    race.pause()
+    expect(race.roundStates[0]).toBe('paused')
+    race.resume()
+
+    race.completeRound(0)
+    // The finished round holds the track; the next one is lining up.
+    expect(race.roundStates.slice(0, 3)).toEqual(['done', 'next', 'upcoming'])
+    expect(race.winners).toEqual([race.results[0]!.placings[0]!.horseId])
+
+    race.advanceRound()
+    expect(race.roundStates.slice(0, 3)).toEqual(['done', 'racing', 'upcoming'])
+
+    while (race.status === 'running') runRound(race)
+    expect(race.roundStates).toEqual(['done', 'done', 'done', 'done', 'done', 'done'])
+    expect(race.winners).toHaveLength(6)
+  })
+})

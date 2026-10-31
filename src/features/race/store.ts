@@ -3,7 +3,7 @@ import { computed, shallowRef } from 'vue'
 
 import { useHorsesStore } from '@/features/horses/store'
 import { createSchedule } from '@/features/schedule/model/create-schedule'
-import type { Round } from '@/features/schedule/model/round'
+import type { Round, RoundState } from '@/features/schedule/model/round'
 import { createRng, deriveSeed } from '@/shared/lib/random'
 
 import {
@@ -38,6 +38,25 @@ export const useRaceStore = defineStore('race', () => {
   const currentRoundIndex = computed(() => state.value.currentRound)
   const currentRound = computed(() => schedule.value[state.value.currentRound] ?? null)
   const currentSimulation = computed(() => simulations.value[state.value.currentRound] ?? null)
+
+  /** Each round's place in the programme, for the schedule. */
+  const roundStates = computed<RoundState[]>(() => {
+    const { status, currentRound } = state.value
+    const completed = results.value.length
+    return schedule.value.map((_, index): RoundState => {
+      if (index < completed) return 'done'
+      if (index === currentRound) {
+        if (status === 'running') return 'racing'
+        if (status === 'paused') return 'paused'
+        return 'next'
+      }
+      // While a finished round holds the track, the following one is next.
+      return index === completed ? 'next' : 'upcoming'
+    })
+  })
+
+  /** Winning horse id per completed round, in running order. */
+  const winners = computed(() => results.value.map((result) => result.placings[0]?.horseId ?? null))
 
   // What the controls may offer comes from the transition table, not from the components.
   const can = (event: RaceEvent) => transition(state.value, event) !== null
@@ -119,6 +138,8 @@ export const useRaceStore = defineStore('race', () => {
     canGenerate,
     primaryAction,
     schedule,
+    roundStates,
+    winners,
     results,
     startSession,
     generate,
