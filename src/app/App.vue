@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useHorsesStore } from '@/features/horses/store'
 import RaceStage from '@/features/race/components/RaceStage.vue'
+import ResultsPanel from '@/features/race/components/ResultsPanel.vue'
 import { useRaceStore } from '@/features/race/store'
 import SchedulePanel from '@/features/schedule/components/SchedulePanel.vue'
 
@@ -27,7 +28,7 @@ const horses = useHorsesStore()
           :winners="race.winners"
           :horses-by-id="horses.horsesById"
         />
-        <!-- ResultsPanel -->
+        <ResultsPanel />
       </div>
       <div class="horses"><!-- HorseRoster --></div>
     </main>
