@@ -1,0 +1,40 @@
+/* Design tokens. Light, single theme; contrast ratios are measured against --color-bg. */
+:root {
+  --color-bg: #f7f7f5;
+  --color-surface: #ffffff;
+  --color-text: #1d1d1f; /* 15.7:1, and the only text color used on the track */
+  --color-text-2: #6b6b70; /* 4.9:1 */
+  --color-text-disabled: #a1a1a6;
+  --color-border: #e5e5e7;
+  --color-fill: #f1f1ef; /* hover, segmented controls */
+  --color-fill-disabled: #e9e9eb;
+  --color-accent: #a12b3a; /* primary action, current round, winner; 7.2:1 with white */
+  --color-accent-hover: #8e2433;
+  --color-accent-soft: #f7ebed;
+  --color-focus: #1d1d1f;
+  --color-track: #e7efe8;
+  --color-track-alt: #e0eae2;
+  --color-track-line: #cbdace;
+
+  --font-sans: 'Inter Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-size-title: 1.75rem; /* 28px */
+  --font-size-large: 1.0625rem; /* 17px */
+  --font-size-body: 0.9375rem; /* 15px */
+  --font-size-small: 0.8125rem; /* 13px */
+  --font-size-caption: 0.75rem; /* 12px */
+
+  --radius-card: 16px;
+  --radius-track: 12px;
+  --radius-button: 11px;
+
+  /* 4px grid */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-10: 40px;
+  --space-12: 48px;
+}
