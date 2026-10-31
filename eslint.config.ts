@@ -1,3 +1,4 @@
+import type { Linter } from 'eslint'
 import { globalIgnores } from 'eslint/config'
 import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
 import pluginVue from 'eslint-plugin-vue'
@@ -10,6 +11,35 @@ import skipFormatting from 'eslint-config-prettier/flat'
 // import { configureVueProject } from '@vue/eslint-config-typescript'
 // configureVueProject({ scriptLangs: ['ts', 'tsx'] })
 // More info at https://github.com/vuejs/eslint-config-typescript/#advanced-setup
+
+// Dependencies flow one way: app → race → schedule → horses → shared.
+// Code outside a module reaches it through the `@/` alias, never `../../`.
+const layers = ['app', 'features/race', 'features/schedule', 'features/horses', 'shared']
+
+const boundaryRules = layers.map((layer, index): Linter.Config => {
+  const forbidden = layers.slice(0, index)
+  return {
+    name: `app/boundaries/${layer}`,
+    files: [`src/${layer}/**/*.{ts,vue}`],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            ...forbidden.map((target) => ({
+              group: [`@/${target}`, `@/${target}/**`],
+              message: `${layer} must not depend on ${target}.`,
+            })),
+            {
+              group: ['../../*'],
+              message: 'Import from other modules through the @/ alias.',
+            },
+          ],
+        },
+      ],
+    },
+  }
+})
 
 export default defineConfigWithVueTs(
   {
@@ -31,6 +61,8 @@ export default defineConfigWithVueTs(
     ...pluginVitest.configs.recommended,
     files: ['src/**/__tests__/*'],
   },
+
+  ...boundaryRules,
 
   ...pluginOxlint.buildFromOxlintConfigFile('.oxlintrc.json'),
 

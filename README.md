@@ -17,10 +17,14 @@ npm run dev
 
 ## Scripts
 
-| Command             | Description                          |
-| ------------------- | ------------------------------------ |
-| `npm run dev`       | Start the development server         |
-| `npm run build`     | Type-check and build for production  |
-| `npm run test:unit` | Run unit tests with Vitest           |
-| `npm run test:e2e`  | Run end-to-end tests with Playwright |
-| `npm run lint`      | Lint with oxlint and ESLint          |
+| Command                   | Description                                      |
+| ------------------------- | ------------------------------------------------ |
+| `npm run dev`             | Start the development server                     |
+| `npm run build`           | Type-check and build for production              |
+| `npm run validate`        | Lint, check formatting, run unit tests and build |
+| `npm run test:unit`       | Run unit tests once with Vitest                  |
+| `npm run test:unit:watch` | Run unit tests in watch mode                     |
+| `npm run test:e2e`        | Run end-to-end tests with Playwright             |
+| `npm run lint`            | Lint with oxlint and ESLint                      |
+| `npm run lint:fix`        | Lint and apply automatic fixes                   |
+| `npm run format`          | Format the source and test files with Prettier   |
