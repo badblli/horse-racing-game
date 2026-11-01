@@ -66,6 +66,12 @@ const statusInput = computed<RaceStatusInput>(() => {
   }
 })
 
+/** The color of the horse the status line names: the leader, then the round's winner. */
+const namedHorseColor = computed(() => {
+  const named = leader.value ?? result.value?.placings[0]
+  return named ? (horses.horsesById.get(named.horseId)?.color.hex ?? null) : null
+})
+
 const statusMessage = computed(() => describeRaceStatus(statusInput.value))
 const announcement = computed(() => describeRaceAnnouncement(statusInput.value))
 </script>
@@ -77,6 +83,7 @@ const announcement = computed(() => describeRaceAnnouncement(statusInput.value))
         :round-number="race.currentRound?.number ?? null"
         :distance="race.currentRound?.distance ?? null"
         :status-message="statusMessage"
+        :horse-color="namedHorseColor"
       />
       <RaceControls
         :can-generate="race.canGenerate"

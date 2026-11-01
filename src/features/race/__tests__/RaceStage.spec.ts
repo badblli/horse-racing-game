@@ -2,7 +2,11 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { mount } from '@vue/test-utils'
 
+import { useHorsesStore } from '@/features/horses/store'
+import { readableText } from '@/shared/lib/color'
+
 import RaceStage from '../components/RaceStage.vue'
+import { leaderAt } from '../model/standings'
 import { useRaceStore } from '../store'
 
 function mountStage() {
@@ -76,6 +80,28 @@ describe('RaceStage', () => {
 
     expect(stage.status()).toMatch(/^.+ wins round 1 in \d:\d\d\.\d\d\. Round 2 lines up next\.$/)
     expect(stage.announcement()).toMatch(/^.+ wins round 1 in \d:\d\d\.\d\d\.$/)
+  })
+
+  it('writes the leader and the winner in their own colors', async () => {
+    const stage = mountStage()
+    const horses = useHorsesStore()
+    const name = () => stage.wrapper.get('[data-testid="race-status"] strong')
+    const colorOf = (horseId: string) => {
+      const swatch = document.createElement('span')
+      swatch.style.color = readableText(horses.horsesById.get(horseId)!.color.hex)
+      return swatch.style.color
+    }
+
+    stage.race.generate()
+    stage.race.start()
+    await stage.wrapper.setProps({ time: 5 })
+    const leader = leaderAt(stage.race.currentSimulation!, 5)!
+    expect((name().element as HTMLElement).style.color).toBe(colorOf(leader.horseId))
+
+    stage.race.completeRound(0)
+    await stage.wrapper.vm.$nextTick()
+    const winner = stage.race.results[0]!.placings[0]!
+    expect((name().element as HTMLElement).style.color).toBe(colorOf(winner.horseId))
   })
 
   it('places the horses by the race time it is given', async () => {

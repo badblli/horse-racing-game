@@ -1,14 +1,23 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+
 import { ROUND_DISTANCES } from '@/features/schedule/model/round'
+import { readableText } from '@/shared/lib/color'
 import { formatDistance } from '@/shared/lib/format'
 
 import type { StatusMessage } from '../model/describe-status'
 
-defineProps<{
+const props = defineProps<{
   roundNumber: number | null
   distance: number | null
   statusMessage: StatusMessage
+  /** Color of the horse the status names, if any. */
+  horseColor: string | null
 }>()
+
+const nameStyle = computed(() =>
+  props.horseColor ? { color: readableText(props.horseColor) } : undefined,
+)
 </script>
 
 <template>
@@ -22,7 +31,7 @@ defineProps<{
     </h2>
     <p class="status" data-testid="race-status">
       <template v-for="(part, index) in statusMessage" :key="index">
-        <strong v-if="part.strong" lang="tr">{{ part.text }}</strong>
+        <strong v-if="part.strong" lang="tr" :style="nameStyle">{{ part.text }}</strong>
         <template v-else>{{ part.text }}</template>
       </template>
     </p>
@@ -45,6 +54,7 @@ defineProps<{
   min-height: 1.5em;
   margin-top: var(--space-1);
   color: var(--color-text-2);
+  font-size: 1rem;
 }
 
 .status strong {
