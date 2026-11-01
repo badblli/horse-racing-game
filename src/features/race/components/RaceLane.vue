@@ -42,6 +42,15 @@ withDefaults(
   grid-template-columns: 196px minmax(0, 1fr) 40px;
   align-items: center;
   height: 42px;
+  /* A new round fades in, which also hides the horses going back to the start. */
+  animation: fade-in 0.32s ease-out;
+  transition: background 0.3s ease;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
 }
 
 .lane + .lane {
@@ -59,6 +68,7 @@ withDefaults(
 .name {
   overflow: hidden;
   font-size: 0.88rem;
+  transition: color 0.3s ease;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -108,6 +118,14 @@ withDefaults(
   background: var(--color-accent);
   color: #fff;
   font-weight: 600;
+  /* Runs each time the badge lands on a new lane. */
+  animation: badge-pop 0.32s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+
+@keyframes badge-pop {
+  from {
+    transform: scale(0.6);
+  }
 }
 
 /* Column widths match the track caption in RaceTrack. */

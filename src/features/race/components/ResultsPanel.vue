@@ -51,9 +51,16 @@ const liveRunners = computed<readonly Horse[]>((previous) => {
   return previous && next.every((horse, index) => horse === previous[index]) ? previous : next
 })
 
+/** Which side the shown round slides in from. */
+const slideFrom = ref<'left' | 'right'>('right')
+
 const showLive = computed(() => selectedRound.value === null && liveRound.value !== null)
 const shownRound = computed(() => selectedRound.value ?? followedRound.value)
 const shownResult = computed(() => race.results[shownRound.value] ?? null)
+
+watch(shownRound, (now, was) => {
+  slideFrom.value = now < was ? 'left' : 'right'
+})
 
 function select(index: number) {
   // Picking the round the race is on goes back to following it.
@@ -82,20 +89,30 @@ function select(index: number) {
           {{ round.number }}
         </button>
       </div>
-      <template v-if="showLive && race.currentRound">
+      <div
+        v-if="showLive && race.currentRound"
+        key="live"
+        class="shown"
+        :class="`from-${slideFrom}`"
+      >
         <p class="meta live">
           <span class="live-dot" aria-hidden="true"></span>
           Round {{ race.currentRound.number }} · {{ formatDistance(race.currentRound.distance) }} ·
           Live
         </p>
         <LiveOrder :runners="liveRunners" />
-      </template>
-      <template v-else-if="shownResult">
+      </div>
+      <div
+        v-else-if="shownResult"
+        :key="shownResult.roundNumber"
+        class="shown"
+        :class="`from-${slideFrom}`"
+      >
         <p class="meta">
           Round {{ shownResult.roundNumber }} · {{ formatDistance(shownResult.distance) }}
         </p>
         <RoundResult :result="shownResult" :horses-by-id="horses.horsesById" />
-      </template>
+      </div>
     </template>
     <p v-else class="empty">Each round's order appears here live, then its result when it ends.</p>
   </section>
@@ -130,6 +147,34 @@ function select(index: number) {
   font-size: 0.85rem;
 }
 
+.shown {
+  display: flex;
+  flex-direction: column;
+  gap: inherit;
+}
+
+.from-right {
+  animation: slide-from-right 0.24s ease-out;
+}
+
+.from-left {
+  animation: slide-from-left 0.24s ease-out;
+}
+
+@keyframes slide-from-right {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+}
+
+@keyframes slide-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+}
+
 .live {
   display: flex;
   align-items: center;
@@ -141,6 +186,13 @@ function select(index: number) {
   height: 7px;
   border-radius: 50%;
   background: var(--color-accent);
+  animation: live-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  50% {
+    opacity: 0.3;
+  }
 }
 
 .picker {

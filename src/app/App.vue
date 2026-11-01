@@ -220,6 +220,12 @@ watch(
   }
 }
 
+@keyframes panel-in {
+  from {
+    opacity: 0;
+  }
+}
+
 /* Phones: one panel at a time, chosen from a menu fixed above the action bar. */
 @media (max-width: 599px) {
   .app {
@@ -258,6 +264,13 @@ watch(
   }
 
   /* The stage stays mounted so the race keeps running; its action bar stays visible on its own. */
+  .layout > .stage.active,
+  .schedule.active,
+  .results.active,
+  .horses.active {
+    animation: panel-in 0.22s ease-out;
+  }
+
   .layout > .stage:not(.active) {
     height: 0;
     overflow: hidden;

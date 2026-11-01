@@ -22,7 +22,7 @@ const nameStyle = computed(() =>
 
 <template>
   <div class="heading">
-    <h2 class="title">
+    <h2 :key="roundNumber ?? 0" class="title">
       <template v-if="roundNumber !== null && distance !== null">
         Round {{ roundNumber }}
         <span class="detail">of {{ ROUND_DISTANCES.length }} · {{ formatDistance(distance) }}</span>
@@ -30,7 +30,7 @@ const nameStyle = computed(() =>
       <template v-else>No race scheduled</template>
     </h2>
     <p class="status" data-testid="race-status">
-      <template v-for="(part, index) in statusMessage" :key="index">
+      <template v-for="(part, index) in statusMessage" :key="`${index}-${part.text}`">
         <strong v-if="part.strong" lang="tr" :style="nameStyle">{{ part.text }}</strong>
         <template v-else>{{ part.text }}</template>
       </template>
@@ -39,6 +39,19 @@ const nameStyle = computed(() =>
 </template>
 
 <style scoped>
+/* A new round's title and a new leader's name arrive softly; both elements are keyed. */
+.title,
+.status strong {
+  animation: rise-in 0.26s ease-out;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
 .title {
   font-size: var(--font-size-title);
   font-weight: 600;
@@ -58,6 +71,7 @@ const nameStyle = computed(() =>
 }
 
 .status strong {
+  display: inline-block;
   color: var(--color-text);
   font-weight: 600;
 }
