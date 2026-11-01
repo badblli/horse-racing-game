@@ -32,4 +32,20 @@
   color: var(--color-text-2);
   font-size: var(--font-size-body);
 }
+
+@media (max-width: 599px) {
+  .header {
+    flex-direction: column;
+    gap: 0;
+    padding: var(--space-4) 0 14px;
+  }
+
+  .brand {
+    font-size: 1.05rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+  }
+}
 </style>

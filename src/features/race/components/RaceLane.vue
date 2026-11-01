@@ -102,4 +102,37 @@ withDefaults(
   color: #fff;
   font-weight: 600;
 }
+
+/* Column widths match the track caption in RaceTrack. */
+@media (max-width: 1023px) {
+  .lane {
+    grid-template-columns: 168px minmax(0, 1fr) 36px;
+  }
+}
+
+/* Mobile: lanes keep only the number chip; LaneKey names the runners. */
+@media (max-width: 599px) {
+  .lane {
+    grid-template-columns: 40px minmax(0, 1fr) 30px;
+    height: 34px;
+  }
+
+  .label {
+    padding: 0 0 0 10px;
+  }
+
+  .name {
+    display: none;
+  }
+
+  .mover {
+    right: 38px;
+  }
+
+  .mover :deep(svg) {
+    width: 42px;
+    height: 28px;
+    margin-top: -16px;
+  }
+}
 </style>

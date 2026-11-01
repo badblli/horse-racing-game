@@ -113,8 +113,12 @@ const halves = computed(() => {
 }
 
 .tables {
+  /* The widest a table gets with the longest names in the pool. */
+  --table-min: 375px;
+
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* Side by side when both tables fit, one under the other otherwise. */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--table-min)), 1fr));
   gap: 0 var(--space-7);
 }
 
@@ -202,5 +206,44 @@ td.color {
 .lane.none {
   color: var(--color-text-disabled);
   font-weight: 400;
+}
+
+/* Tablet: the color name goes; the chip still shows the color. */
+@media (max-width: 1023px) {
+  .tables {
+    --table-min: 305px;
+  }
+
+  .color {
+    display: none;
+  }
+}
+
+/* Mobile: one table under the other, read as a single list. */
+@media (max-width: 599px) {
+  .roster {
+    padding: var(--space-4) 14px var(--space-2);
+  }
+
+  /* Tighter cells and a shorter meter keep four columns inside a 320 px screen. */
+  th,
+  td {
+    padding-right: var(--space-1);
+    padding-left: var(--space-1);
+  }
+
+  .meter {
+    width: 32px;
+  }
+
+  /* The second header repeats the first, so it stays for screen readers only. */
+  table + table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }
 </style>

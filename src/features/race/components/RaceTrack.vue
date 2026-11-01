@@ -103,4 +103,21 @@ defineProps<{
   color: var(--color-text-2);
   font-size: 0.9rem;
 }
+
+/* Column widths match RaceLane. */
+@media (max-width: 1023px) {
+  .caption {
+    grid-template-columns: 168px minmax(0, 1fr) 36px;
+  }
+}
+
+@media (max-width: 599px) {
+  .caption {
+    grid-template-columns: 40px minmax(0, 1fr) 30px;
+  }
+
+  .caption-lane {
+    visibility: hidden;
+  }
+}
 </style>

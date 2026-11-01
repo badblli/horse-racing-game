@@ -75,4 +75,27 @@ function onRaceAction() {
   height: 11px;
   fill: currentColor;
 }
+
+/* Mobile: the same controls become a bar fixed to the bottom of the screen. */
+@media (max-width: 599px) {
+  .controls {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 5;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--color-border);
+    background: rgb(255 255 255 / 0.96);
+  }
+
+  /* BaseButton's root carries this component's scope, so no :deep is needed. */
+  .button {
+    min-height: 48px;
+    padding: 10px var(--space-3);
+    font-size: 1rem;
+  }
+}
 </style>

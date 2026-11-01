@@ -51,4 +51,10 @@ defineProps<{
   color: var(--color-text);
   font-weight: 600;
 }
+
+@media (max-width: 599px) {
+  .title {
+    font-size: 1.4rem;
+  }
+}
 </style>

@@ -109,4 +109,12 @@ const announcement = computed(() => describeRaceAnnouncement(statusInput.value))
   align-items: flex-start;
   gap: var(--space-4);
 }
+
+@media (max-width: 599px) {
+  .stage {
+    gap: 14px;
+    padding: 18px 14px var(--space-4);
+    border-radius: 14px;
+  }
+}
 </style>

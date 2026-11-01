@@ -62,4 +62,10 @@ defineProps<{ lanes: readonly TrackLane[] }>()
   color: var(--color-accent);
   font-weight: 600;
 }
+
+@media (max-width: 599px) {
+  .key {
+    display: grid;
+  }
+}
 </style>
