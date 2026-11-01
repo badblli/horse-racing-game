@@ -1,3 +1,7 @@
+<script setup lang="ts">
+import InsiderLogo from './InsiderLogo.vue'
+</script>
+
 <template>
   <header class="header">
     <div class="titles">
@@ -16,6 +20,11 @@
       </h1>
       <p class="subtitle">Horse Racing Simulator</p>
     </div>
+    <p class="credit">
+      Built by badblli for
+      <InsiderLogo class="logo" />
+      <span class="assessment">assessment</span>
+    </p>
     <nav class="links" aria-label="Author links">
       <a
         href="https://github.com/badblli"
@@ -58,7 +67,6 @@
 .header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-3);
   padding: 22px 0 var(--space-5);
 }
@@ -91,6 +99,27 @@
 .subtitle {
   color: var(--color-text-2);
   font-size: var(--font-size-body);
+}
+
+.credit {
+  margin-left: auto;
+  color: var(--color-text-2);
+  font-size: var(--font-size-small);
+  white-space: nowrap;
+}
+
+/* The logo's letters sit on the sentence's baseline. */
+.logo {
+  display: inline-block;
+  width: auto;
+  height: 18px;
+  margin: 0 1px;
+  color: var(--color-text);
+  vertical-align: -4.5px;
+}
+
+.assessment {
+  margin-left: 4px;
 }
 
 .links {
@@ -129,6 +158,14 @@
   height: 16px;
 }
 
+/* The credit needs the room on tablets; the page title still names the simulator. */
+@media (max-width: 1023px) {
+  .subtitle,
+  .assessment {
+    display: none;
+  }
+}
+
 /* Small tablets keep the icons only; the buttons stay labelled for screen readers. */
 @media (max-width: 719px) {
   .links a {
@@ -140,14 +177,17 @@
   }
 }
 
+/* Phones: the credit moves under the title, the links span both rows. */
 @media (max-width: 599px) {
   .header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0 var(--space-3);
     padding: var(--space-4) 0 14px;
   }
 
-  .titles {
-    flex-direction: column;
-    gap: 0;
+  .links {
+    grid-area: 1 / 2 / 3 / 3;
   }
 
   .brand {
@@ -159,8 +199,15 @@
     height: 20px;
   }
 
-  .subtitle {
-    font-size: 0.85rem;
+  .credit {
+    margin-left: 0;
+    font-size: var(--font-size-caption);
+    white-space: normal;
+  }
+
+  .logo {
+    height: 16px;
+    vertical-align: -4px;
   }
 
   .links a {

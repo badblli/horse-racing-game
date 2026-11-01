@@ -4,6 +4,14 @@ import { mount } from '@vue/test-utils'
 import AppHeader from '../AppHeader.vue'
 
 describe('AppHeader', () => {
+  it('credits the author and names the assessment through its logo', () => {
+    const credit = mount(AppHeader).get('.credit')
+
+    expect(credit.text()).toContain('Built by badblli for')
+    expect(credit.get('svg').attributes('aria-label')).toBe('Insider One')
+    expect(credit.text()).toContain('assessment')
+  })
+
   it('links to the author in a new tab', () => {
     const links = mount(AppHeader).findAll('nav a')
 
