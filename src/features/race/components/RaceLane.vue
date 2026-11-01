@@ -74,7 +74,7 @@ withDefaults(
 }
 
 .emphasised {
-  background: rgb(161 43 58 / 0.1);
+  background: var(--color-accent-soft);
 }
 
 .emphasised .name {
