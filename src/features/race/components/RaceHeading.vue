@@ -63,8 +63,9 @@ const nameStyle = computed(() =>
   font-weight: 500;
 }
 
+/* Room for two lines, so the track does not jump when a round ends. */
 .status {
-  min-height: 1.5em;
+  min-height: 3em;
   margin-top: var(--space-1);
   color: var(--color-text-2);
   font-size: 1rem;
