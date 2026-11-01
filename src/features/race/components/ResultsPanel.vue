@@ -1,16 +1,24 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 
+import type { Horse } from '@/features/horses/model/horse'
 import { useHorsesStore } from '@/features/horses/store'
 import { formatDistance } from '@/shared/lib/format'
 
+import { rankAt } from '../model/standings'
 import { useRaceStore } from '../store'
+import LiveOrder from './LiveOrder.vue'
 import RoundResult from './RoundResult.vue'
+
+const props = defineProps<{
+  /** Race seconds since the current round started. */
+  time: number
+}>()
 
 const race = useRaceStore()
 const horses = useHorsesStore()
 
-/** The round the user picked; null follows the latest result. */
+/** The round the user picked; null follows the race. */
 const selectedRound = ref<number | null>(null)
 
 watch(
@@ -22,12 +30,33 @@ watch(
 
 const completed = computed(() => race.results.length)
 const latestRound = computed(() => completed.value - 1)
-const shownRound = computed(() => selectedRound.value ?? latestRound.value)
+
+/** The round running now, until its result takes over. */
+const liveRound = computed(() => {
+  const inPlay = race.status === 'running' || race.status === 'paused'
+  return inPlay && props.time > 0 && !race.results[race.currentRoundIndex]
+    ? race.currentRoundIndex
+    : null
+})
+const followedRound = computed(() => liveRound.value ?? latestRound.value)
+
+// The time changes every frame but the order rarely does; keeping the same array spares a render.
+const liveRunners = computed<readonly Horse[]>((previous) => {
+  const simulation = race.currentSimulation
+  if (liveRound.value === null || !simulation) return []
+  const next = rankAt(simulation, props.time).flatMap(
+    (runner) => horses.horsesById.get(runner.horseId) ?? [],
+  )
+  return previous && next.every((horse, index) => horse === previous[index]) ? previous : next
+})
+
+const showLive = computed(() => selectedRound.value === null && liveRound.value !== null)
+const shownRound = computed(() => selectedRound.value ?? followedRound.value)
 const shownResult = computed(() => race.results[shownRound.value] ?? null)
 
 function select(index: number) {
-  // Picking the latest round goes back to following the race.
-  selectedRound.value = index === latestRound.value ? null : index
+  // Picking the round the race is on goes back to following it.
+  selectedRound.value = index === followedRound.value ? null : index
 }
 </script>
 
@@ -37,7 +66,7 @@ function select(index: number) {
       <h2 id="results-title">Results</h2>
       <span v-if="completed">{{ completed }} of {{ race.schedule.length }}</span>
     </div>
-    <template v-if="shownResult">
+    <template v-if="shownResult || showLive">
       <div class="picker" role="group" aria-label="Choose round">
         <button
           v-for="(round, index) in race.schedule"
@@ -45,18 +74,28 @@ function select(index: number) {
           type="button"
           :aria-label="`Round ${round.number}`"
           :aria-pressed="index === shownRound"
-          :disabled="index > latestRound"
+          :disabled="index > followedRound"
           @click="select(index)"
         >
           {{ round.number }}
         </button>
       </div>
-      <p class="meta">
-        Round {{ shownResult.roundNumber }} · {{ formatDistance(shownResult.distance) }}
-      </p>
-      <RoundResult :result="shownResult" :horses-by-id="horses.horsesById" />
+      <template v-if="showLive && race.currentRound">
+        <p class="meta live">
+          <span class="live-dot" aria-hidden="true"></span>
+          Round {{ race.currentRound.number }} · {{ formatDistance(race.currentRound.distance) }} ·
+          Live
+        </p>
+        <LiveOrder :runners="liveRunners" />
+      </template>
+      <template v-else-if="shownResult">
+        <p class="meta">
+          Round {{ shownResult.roundNumber }} · {{ formatDistance(shownResult.distance) }}
+        </p>
+        <RoundResult :result="shownResult" :horses-by-id="horses.horsesById" />
+      </template>
     </template>
-    <p v-else class="empty">Each round's finishing order appears here as soon as the round ends.</p>
+    <p v-else class="empty">Each round's order appears here live, then its result when it ends.</p>
   </section>
 </template>
 
@@ -87,6 +126,19 @@ function select(index: number) {
 .meta {
   color: var(--color-text-2);
   font-size: 0.85rem;
+}
+
+.live {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-accent);
 }
 
 .picker {

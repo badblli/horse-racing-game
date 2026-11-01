@@ -6,12 +6,13 @@ import { useHorsesStore } from '@/features/horses/store'
 import { formatRaceTime } from '@/shared/lib/format'
 
 import ResultsPanel from '../components/ResultsPanel.vue'
+import { rankAt } from '../model/standings'
 import { useRaceStore } from '../store'
 
 function mountPanel() {
   const race = useRaceStore()
   race.startSession(1923)
-  const panel = mount(ResultsPanel)
+  const panel = mount(ResultsPanel, { props: { time: 0 } })
   return {
     race,
     panel,
@@ -36,13 +37,13 @@ describe('ResultsPanel', () => {
 
   it('says when results will appear before any round ends', async () => {
     const { race, panel } = mountPanel()
-    expect(panel.text()).toContain('finishing order appears here')
+    expect(panel.text()).toContain('appears here live')
 
     race.generate()
     race.start()
     await panel.vm.$nextTick()
 
-    expect(panel.text()).toContain('finishing order appears here')
+    expect(panel.text()).toContain('appears here live')
     expect(panel.find('[role="group"]').exists()).toBe(false)
   })
 
@@ -100,6 +101,85 @@ describe('ResultsPanel', () => {
     expect(meta()).toContain('Round 5')
   })
 
+  describe('while a round runs', () => {
+    const names = (panel: ReturnType<typeof mountPanel>['panel']) =>
+      panel.findAll('.order .name').map((name) => name.text())
+
+    it('shows the live order, without times, for the round on the track', async () => {
+      const { race, panel, picker, meta } = mountPanel()
+      const horses = useHorsesStore()
+      race.generate()
+      race.start()
+      await panel.setProps({ time: 20 })
+
+      const expected = rankAt(race.currentSimulation!, 20).map(
+        (runner) => horses.horsesById.get(runner.horseId)!.name,
+      )
+      expect(meta()).toBe('Round 1 · 1,200 m · Live')
+      expect(names(panel)).toEqual(expected)
+      expect(panel.findAll('.order li').map((row) => row.get('.position').text())).toEqual(
+        Array.from({ length: 10 }, (_, index) => String(index + 1)),
+      )
+      expect(panel.find('.time').exists()).toBe(false)
+      expect(panel.find('[data-testid="winner"]').exists()).toBe(false)
+      expect(picker()[0]!.attributes('aria-pressed')).toBe('true')
+    })
+
+    it('follows the order as the race time moves on', async () => {
+      const { race, panel } = mountPanel()
+      race.generate()
+      race.start()
+      await panel.setProps({ time: 1 })
+      const early = names(panel)
+
+      const finished = race.currentSimulation!.duration
+      await panel.setProps({ time: finished })
+      expect(names(panel)).not.toEqual(early)
+    })
+
+    it('stays on the live order while paused', async () => {
+      const { race, panel, meta } = mountPanel()
+      race.generate()
+      race.start()
+      await panel.setProps({ time: 20 })
+
+      race.pause()
+      await panel.vm.$nextTick()
+      expect(meta()).toContain('Live')
+    })
+
+    it('gives way to the final result as soon as the round ends', async () => {
+      const { race, panel, meta, winner } = mountPanel()
+      race.generate()
+      race.start()
+      await panel.setProps({ time: 20 })
+
+      race.completeRound(0)
+      await panel.vm.$nextTick()
+      expect(panel.find('.order').exists()).toBe(false)
+      expect(meta()).toBe('Round 1 · 1,200 m')
+      expect(winner()).toContain('Winner')
+      expect(panel.findAll('.places .time')).toHaveLength(9)
+    })
+
+    it('lets an earlier round be read, then returns to the live order', async () => {
+      const { race, panel, picker, meta } = mountPanel()
+      race.generate()
+      race.start()
+      runRounds(race, 1)
+      await panel.setProps({ time: 20 })
+      expect(meta()).toContain('Round 2 · 1,400 m · Live')
+      expect(picker()[1]!.attributes('disabled')).toBeUndefined()
+      expect(picker()[2]!.attributes('disabled')).toBeDefined()
+
+      await picker()[0]!.trigger('click')
+      expect(meta()).toBe('Round 1 · 1,200 m')
+
+      await picker()[1]!.trigger('click')
+      expect(meta()).toContain('Live')
+    })
+  })
+
   it('starts over when a new schedule is generated', async () => {
     const { race, panel, picker } = mountPanel()
     race.generate()
@@ -110,7 +190,7 @@ describe('ResultsPanel', () => {
 
     race.generate()
     await panel.vm.$nextTick()
-    expect(panel.text()).toContain('finishing order appears here')
+    expect(panel.text()).toContain('appears here live')
 
     race.start()
     runRounds(race, 1)

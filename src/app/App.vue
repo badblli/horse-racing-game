@@ -79,7 +79,7 @@ watch(
           aria-labelledby="tab-results"
           data-testid="detail-panel"
         >
-          <ResultsPanel />
+          <ResultsPanel :time="time" />
         </div>
       </div>
       <div
