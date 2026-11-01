@@ -96,9 +96,9 @@ function select(index: number) {
         :class="`from-${slideFrom}`"
       >
         <p class="meta live">
-          <span class="live-dot" aria-hidden="true"></span>
+          <span class="live-dot" :class="{ held: race.status === 'paused' }" aria-hidden="true" />
           Round {{ race.currentRound.number }} · {{ formatDistance(race.currentRound.distance) }} ·
-          Live
+          {{ race.status === 'paused' ? 'Paused' : 'Live' }}
         </p>
         <LiveOrder :runners="liveRunners" />
       </div>
@@ -187,6 +187,11 @@ function select(index: number) {
   border-radius: 50%;
   background: var(--color-accent);
   animation: live-pulse 1.4s ease-in-out infinite;
+}
+
+.live-dot.held {
+  animation: none;
+  opacity: 0.4;
 }
 
 @keyframes live-pulse {

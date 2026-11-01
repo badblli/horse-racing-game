@@ -138,7 +138,7 @@ describe('ResultsPanel', () => {
       expect(names(panel)).not.toEqual(early)
     })
 
-    it('stays on the live order while paused', async () => {
+    it('keeps the order but says it is paused', async () => {
       const { race, panel, meta } = mountPanel()
       race.generate()
       race.start()
@@ -146,7 +146,9 @@ describe('ResultsPanel', () => {
 
       race.pause()
       await panel.vm.$nextTick()
-      expect(meta()).toContain('Live')
+      expect(meta()).toBe('Round 1 · 1,200 m · Paused')
+      expect(panel.findAll('.order li')).toHaveLength(10)
+      expect(panel.get('.live-dot').classes()).toContain('held')
     })
 
     it('gives way to the final result as soon as the round ends', async () => {
