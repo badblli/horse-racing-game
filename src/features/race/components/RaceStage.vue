@@ -8,7 +8,7 @@ import {
   describeRaceStatus,
   type RaceStatusInput,
 } from '../model/describe-status'
-import type { TrackLane } from '../model/race'
+import type { RunnerTrajectory, TrackLane } from '../model/race'
 import { distanceAt, leaderAt, rankAt } from '../model/standings'
 import { useRaceStore } from '../store'
 import LaneKey from './LaneKey.vue'
@@ -66,19 +66,24 @@ const statusInput = computed<RaceStatusInput>(() => {
   }
 })
 
-/** Horse ids in their current order once the race is on: the live ranking, then the result. */
-const order = computed(() => {
-  if (result.value) return result.value.placings.map((placing) => placing.horseId)
+/**
+ * Runners in their current order once the race is on: the live ranking, then the result.
+ * The time changes every frame but the order rarely does; keeping the same array spares a render.
+ */
+const order = computed<readonly RunnerTrajectory[] | null>((previous) => {
   const simulation = race.currentSimulation
-  return simulation && inPlay.value && props.time > 0
-    ? rankAt(simulation, props.time).map((runner) => runner.horseId)
-    : null
+  if (!simulation) return null
+  const running = inPlay.value && props.time > 0
+  if (!result.value && !running) return null
+  const next = rankAt(simulation, result.value ? simulation.duration : props.time)
+  return previous && next.every((runner, index) => runner === previous[index]) ? previous : next
 })
 
-const keyLanes = computed(() =>
-  order.value
-    ? order.value.flatMap((id) => lanes.value.find((item) => item.horse.id === id) ?? [])
-    : lanes.value,
+const keyRunners = computed(() =>
+  (order.value ?? race.currentSimulation?.runners ?? []).flatMap((runner) => {
+    const horse = horses.horsesById.get(runner.horseId)
+    return horse ? [{ lane: runner.lane, horse }] : []
+  }),
 )
 
 /** The color of the horse the status line names: the leader, then the round's winner. */
@@ -110,7 +115,7 @@ const announcement = computed(() => describeRaceAnnouncement(statusInput.value))
       />
     </div>
     <RaceTrack :lanes="lanes" :phase="race.status" />
-    <LaneKey :lanes="keyLanes" :ranked="order !== null" />
+    <LaneKey :runners="keyRunners" :ranked="order !== null" />
     <RaceAnnouncer :message="announcement" />
   </section>
 </template>

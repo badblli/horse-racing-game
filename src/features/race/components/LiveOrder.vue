@@ -9,13 +9,13 @@ defineProps<{
 </script>
 
 <template>
-  <ol class="order" aria-label="Current order">
+  <TransitionGroup tag="ol" name="reorder" class="order" aria-label="Current order">
     <li v-for="(horse, index) in runners" :key="horse.id" :class="{ leading: index === 0 }">
       <span class="position">{{ index + 1 }}</span>
       <ColorChip class="small" :color="horse.color.hex" />
       <span class="name" lang="tr">{{ horse.name }}</span>
     </li>
-  </ol>
+  </TransitionGroup>
 </template>
 
 <style scoped>
@@ -28,6 +28,7 @@ defineProps<{
 }
 
 .order li {
+  position: relative;
   display: grid;
   grid-template-columns: 22px 16px minmax(0, 1fr);
   gap: 10px;
@@ -45,6 +46,12 @@ defineProps<{
   border-radius: 8px;
   background: var(--color-accent-soft);
   font-weight: 600;
+}
+
+/* A horse that changes place slides there; the overtaking row passes on top. */
+.reorder-move {
+  z-index: 1;
+  transition: transform 0.28s cubic-bezier(0.3, 0.7, 0.3, 1);
 }
 
 .position {

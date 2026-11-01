@@ -1,28 +1,34 @@
 <script setup lang="ts">
 import ColorChip from '@/shared/components/ColorChip.vue'
 
-import type { TrackLane } from '../model/race'
+import type { Horse } from '@/features/horses/model/horse'
 
 defineProps<{
-  lanes: readonly TrackLane[]
-  /** True once the lanes arrive in the current order, the leader first. */
+  runners: readonly { readonly lane: number; readonly horse: Horse }[]
+  /** True once the runners arrive in the current order, the leader first. */
   ranked: boolean
 }>()
 </script>
 
 <template>
   <!-- On phones the track shows lane numbers only; this names the runners and, in a race, their order. -->
-  <ol
-    v-if="lanes.length"
+  <TransitionGroup
+    v-if="runners.length"
+    tag="ol"
+    name="reorder"
     class="key"
     :aria-label="ranked ? 'Runners in their current order' : 'Runners by lane'"
   >
-    <li v-for="(item, index) in lanes" :key="item.lane" :class="{ leading: ranked && index === 0 }">
+    <li
+      v-for="(item, index) in runners"
+      :key="item.lane"
+      :class="{ leading: ranked && index === 0 }"
+    >
       <span v-if="ranked" class="position">{{ index + 1 }}</span>
       <ColorChip :color="item.horse.color.hex" :label="item.lane" />
       <span class="name" lang="tr">{{ item.horse.name }}</span>
     </li>
-  </ol>
+  </TransitionGroup>
 </template>
 
 <style scoped>
@@ -44,6 +50,11 @@ defineProps<{
   gap: 6px;
   min-width: 0;
   font-size: 0.84rem;
+}
+
+/* A horse that changes place slides there. */
+.reorder-move {
+  transition: transform 0.28s cubic-bezier(0.3, 0.7, 0.3, 1);
 }
 
 .position {

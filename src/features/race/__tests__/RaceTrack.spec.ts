@@ -85,19 +85,19 @@ describe('RaceTrack', () => {
 
 describe('LaneKey', () => {
   it('names every runner by lane before the race', () => {
-    const key = mount(LaneKey, { props: { lanes: [lane(1), lane(2)], ranked: false } })
+    const key = mount(LaneKey, { props: { runners: [lane(1), lane(2)], ranked: false } })
     const items = key.findAll('li')
 
-    expect(key.get('ol').attributes('aria-label')).toBe('Runners by lane')
+    expect(key.get('.key').attributes('aria-label')).toBe('Runners by lane')
     expect(items.map((item) => item.text())).toEqual(['1Horse 1', '2Horse 2'])
     expect(key.find('.position').exists()).toBe(false)
   })
 
   it('numbers the runners by position in a race, keeping their lane chips', () => {
-    const key = mount(LaneKey, { props: { lanes: [lane(7), lane(2)], ranked: true } })
+    const key = mount(LaneKey, { props: { runners: [lane(7), lane(2)], ranked: true } })
     const items = key.findAll('li')
 
-    expect(key.get('ol').attributes('aria-label')).toBe('Runners in their current order')
+    expect(key.get('.key').attributes('aria-label')).toBe('Runners in their current order')
     expect(items.map((item) => item.text())).toEqual(['17Horse 7', '22Horse 2'])
     expect(items[0]!.classes()).toContain('leading')
     expect(items[1]!.classes()).not.toContain('leading')
@@ -105,8 +105,8 @@ describe('LaneKey', () => {
 
   it('renders nothing before a schedule exists', () => {
     expect(
-      mount(LaneKey, { props: { lanes: [], ranked: false } })
-        .find('ol')
+      mount(LaneKey, { props: { runners: [], ranked: false } })
+        .find('li')
         .exists(),
     ).toBe(false)
   })
