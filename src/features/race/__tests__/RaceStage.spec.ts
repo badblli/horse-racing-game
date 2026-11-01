@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { mount } from '@vue/test-utils'
 
@@ -8,7 +8,7 @@ import { useRaceStore } from '../store'
 function mountStage() {
   const race = useRaceStore()
   race.startSession(1923)
-  const wrapper = mount(RaceStage)
+  const wrapper = mount(RaceStage, { props: { time: 0 } })
   const buttons = () => wrapper.findAll('button')
   return {
     race,
@@ -24,13 +24,6 @@ function mountStage() {
 describe('RaceStage', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
-    // The clock asks for animation frames once a race runs; none are needed here.
-    vi.stubGlobal('requestAnimationFrame', () => 1)
-    vi.stubGlobal('cancelAnimationFrame', () => {})
-  })
-
-  afterEach(() => {
-    vi.unstubAllGlobals()
   })
 
   it('invites the user to generate a schedule', () => {
@@ -83,6 +76,17 @@ describe('RaceStage', () => {
 
     expect(stage.status()).toMatch(/^.+ wins round 1 in \d:\d\d\.\d\d\. Round 2 lines up next\.$/)
     expect(stage.announcement()).toMatch(/^.+ wins round 1 in \d:\d\d\.\d\d\.$/)
+  })
+
+  it('places the horses by the race time it is given', async () => {
+    const stage = mountStage()
+    stage.race.generate()
+    stage.race.start()
+    await stage.wrapper.setProps({ time: 5 })
+
+    const moved = stage.wrapper.findAll('.mover').map((mover) => mover.attributes('style')!)
+    expect(moved.every((style) => !style.includes('--progress: 0;'))).toBe(true)
+    expect(stage.wrapper.findAll('.galloping').length).toBeGreaterThan(0)
   })
 
   it('lines up the round on the track and shows places after the finish', async () => {

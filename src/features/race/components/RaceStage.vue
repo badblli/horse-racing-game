@@ -3,7 +3,6 @@ import { computed } from 'vue'
 
 import { useHorsesStore } from '@/features/horses/store'
 
-import { PLAYBACK_RATE, useRaceClock } from '../composables/useRaceClock'
 import {
   describeRaceAnnouncement,
   describeRaceStatus,
@@ -18,11 +17,13 @@ import RaceControls from './RaceControls.vue'
 import RaceHeading from './RaceHeading.vue'
 import RaceTrack from './RaceTrack.vue'
 
-const props = withDefaults(defineProps<{ rate?: number }>(), { rate: PLAYBACK_RATE })
+const props = defineProps<{
+  /** Race seconds since the current round started. */
+  time: number
+}>()
 
 const race = useRaceStore()
 const horses = useHorsesStore()
-const { time } = useRaceClock({ rate: props.rate })
 
 const nameOf = (horseId: string) => horses.horsesById.get(horseId)?.name ?? horseId
 
@@ -31,7 +32,7 @@ const result = computed(() => race.results[race.currentRoundIndex] ?? null)
 const inPlay = computed(() => race.status === 'running' || race.status === 'paused')
 const leader = computed(() => {
   const simulation = race.currentSimulation
-  return simulation && inPlay.value && !result.value ? leaderAt(simulation, time.value) : null
+  return simulation && inPlay.value && !result.value ? leaderAt(simulation, props.time) : null
 })
 
 const lanes = computed<TrackLane[]>(() => {
@@ -47,10 +48,10 @@ const lanes = computed<TrackLane[]>(() => {
     return {
       lane: runner.lane,
       horse,
-      progress: distanceAt(runner, time.value) / simulation.distance,
+      progress: distanceAt(runner, props.time) / simulation.distance,
       place: places.get(runner.horseId) ?? null,
       isLeader: runner === leader.value,
-      galloping: inPlay.value && time.value > 0 && time.value < runner.finishTime,
+      galloping: inPlay.value && props.time > 0 && props.time < runner.finishTime,
     }
   })
 })

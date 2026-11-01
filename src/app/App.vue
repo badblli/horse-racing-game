@@ -5,19 +5,22 @@ import HorseRoster from '@/features/horses/components/HorseRoster.vue'
 import { useHorsesStore } from '@/features/horses/store'
 import RaceStage from '@/features/race/components/RaceStage.vue'
 import ResultsPanel from '@/features/race/components/ResultsPanel.vue'
+import { useRaceClock } from '@/features/race/composables/useRaceClock'
 import { useRaceStore } from '@/features/race/store'
 import SchedulePanel from '@/features/schedule/components/SchedulePanel.vue'
 
 import AppHeader from './AppHeader.vue'
 import DetailTabs, { type DetailTab } from './DetailTabs.vue'
 
-defineProps<{
+const props = defineProps<{
   /** Race seconds per real second; only the e2e build changes it. */
   playbackRate?: number
 }>()
 
 const race = useRaceStore()
 const horses = useHorsesStore()
+// Owned here because more than one panel reads the race time.
+const { time } = useRaceClock({ rate: props.playbackRate })
 
 /** The panel a phone shows; wider screens show them all. */
 const activeTab = ref<DetailTab>('race')
@@ -50,7 +53,7 @@ watch(
         aria-labelledby="tab-race"
         data-testid="detail-panel"
       >
-        <RaceStage :rate="playbackRate" />
+        <RaceStage :time="time" />
       </div>
       <div class="side">
         <div
