@@ -43,7 +43,7 @@ const rows = computed(() =>
           <th scope="col">Horse</th>
           <th scope="col" class="color">Color</th>
           <th scope="col">Condition</th>
-          <th scope="col">{{ showLanes ? `Round ${roundNumber}` : 'Lane' }}</th>
+          <th scope="col">Lane</th>
         </tr>
       </thead>
       <tbody>
@@ -71,7 +71,7 @@ const rows = computed(() =>
             </span>
           </td>
           <td class="lane" :class="{ none: row.lane === null }" data-testid="lane">
-            {{ row.lane === null ? '—' : `Lane ${row.lane}` }}
+            {{ row.lane ?? '—' }}
           </td>
         </tr>
       </tbody>
