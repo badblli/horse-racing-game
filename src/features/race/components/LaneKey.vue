@@ -11,10 +11,8 @@ defineProps<{
 
 <template>
   <!-- On phones the track shows lane numbers only; this names the runners and, in a race, their order. -->
-  <TransitionGroup
+  <ol
     v-if="runners.length"
-    tag="ol"
-    name="reorder"
     class="key"
     :aria-label="ranked ? 'Runners in their current order' : 'Runners by lane'"
   >
@@ -27,7 +25,7 @@ defineProps<{
       <ColorChip :color="item.horse.color.hex" :label="item.lane" />
       <span class="name" lang="tr">{{ item.horse.name }}</span>
     </li>
-  </TransitionGroup>
+  </ol>
 </template>
 
 <style scoped>
@@ -49,11 +47,6 @@ defineProps<{
   gap: 6px;
   min-width: 0;
   font-size: 0.84rem;
-}
-
-/* A horse that changes place slides there. */
-.reorder-move {
-  transition: transform 0.28s cubic-bezier(0.3, 0.7, 0.3, 1);
 }
 
 .position {
