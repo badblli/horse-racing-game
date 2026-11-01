@@ -40,14 +40,14 @@ export default defineConfig({
       use: {
         ...devices['Desktop Firefox'],
       },
-      testIgnore: /visual\.spec\.ts/,
+      testIgnore: /(visual|a11y)\.spec\.ts/,
     },
     {
       name: 'webkit',
       use: {
         ...devices['Desktop Safari'],
       },
-      testIgnore: /visual\.spec\.ts/,
+      testIgnore: /(visual|a11y)\.spec\.ts/,
     },
     /* A real phone profile for the phone layout: touch, Safari's engine and its viewport units. */
     {
