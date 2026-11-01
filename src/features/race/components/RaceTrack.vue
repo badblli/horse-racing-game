@@ -167,6 +167,11 @@ const distanceMarks = computed(() =>
     background-size: 10px 10px;
   }
 
+  /* Three labels would run into Start and Finish here; every line stays, the middle one is named. */
+  .mark:not(:nth-child(2)) {
+    color: transparent;
+  }
+
   .caption {
     grid-template-columns: 40px minmax(0, 1fr) 30px;
   }
