@@ -16,5 +16,7 @@ defineProps<{ message: string }>()
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+  /* Announcements carry on while a phone shows another tab. */
+  visibility: visible;
 }
 </style>

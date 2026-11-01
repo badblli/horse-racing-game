@@ -34,3 +34,43 @@ for (const viewport of screens) {
     })
   })
 }
+
+test.describe('phone at 390x844', () => {
+  test.use({ viewport: { width: 390, height: 844 } })
+
+  test('shows one panel at a time with no page scroll', async ({ page }) => {
+    await page.goto(URL)
+    await button(page, 'Generate schedule').click()
+    await button(page, 'Start race').click()
+    await expect(page.getByTestId('race-status')).toContainText('All six rounds are complete', {
+      timeout: 20_000,
+    })
+
+    await expect(page.locator('.lanes li').last()).toBeInViewport()
+    expect(await pageScrolls(page)).toBe(false)
+
+    for (const panel of ['Schedule', 'Results', 'Horses']) {
+      await page.getByRole('tab', { name: panel }).click()
+      await expect(page.getByRole('region', { name: panel })).toBeVisible()
+      await expect(page.getByRole('region', { name: 'Race' })).toBeHidden()
+      await expect(button(page, 'Generate schedule')).toBeVisible()
+      expect(await pageScrolls(page)).toBe(false)
+    }
+  })
+
+  test('keeps the race running behind another tab', async ({ page }) => {
+    await page.goto('/?seed=1923&rate=60')
+    await button(page, 'Generate schedule').click()
+    await button(page, 'Start race').click()
+    await page.getByRole('tab', { name: 'Results' }).click()
+
+    await expect(page.getByRole('region', { name: 'Results' }).locator('.places li')).toHaveCount(
+      9,
+      { timeout: 10_000 },
+    )
+    await expect(page.getByRole('tab', { name: 'Results' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+  })
+})

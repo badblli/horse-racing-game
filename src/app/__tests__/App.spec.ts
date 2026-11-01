@@ -38,23 +38,12 @@ describe('App', () => {
     expect(wrapper.find('section[aria-label="Race"]').exists()).toBe(true)
   })
 
-  it('brings results forward on mobile while a finished round holds the track', async () => {
-    const { race, wrapper, activePanel } = mountApp()
-    race.generate()
-    race.start()
-    await wrapper.vm.$nextTick()
-    expect(activePanel()).toEqual(['panel-schedule'])
-
-    race.completeRound(0)
-    await wrapper.vm.$nextTick()
-    expect(activePanel()).toEqual(['panel-results'])
-
-    race.advanceRound()
-    await wrapper.vm.$nextTick()
-    expect(activePanel()).toEqual(['panel-schedule'])
+  it('opens on the track', () => {
+    const { activePanel } = mountApp()
+    expect(activePanel()).toEqual(['panel-race'])
   })
 
-  it('keeps the tab the user picked until a new schedule', async () => {
+  it('keeps the tab the user picked while the race runs', async () => {
     const { race, wrapper, activePanel } = mountApp()
     race.generate()
     race.start()
@@ -65,10 +54,18 @@ describe('App', () => {
     race.completeRound(0)
     await wrapper.vm.$nextTick()
     expect(activePanel()).toEqual(['panel-horses'])
+  })
 
-    race.pause()
+  it('returns to the track on a new schedule and when the race starts', async () => {
+    const { race, wrapper, activePanel } = mountApp()
+    await wrapper.get('#tab-results').trigger('click')
     race.generate()
     await wrapper.vm.$nextTick()
-    expect(activePanel()).toEqual(['panel-schedule'])
+    expect(activePanel()).toEqual(['panel-race'])
+
+    await wrapper.get('#tab-schedule').trigger('click')
+    race.start()
+    await wrapper.vm.$nextTick()
+    expect(activePanel()).toEqual(['panel-race'])
   })
 })

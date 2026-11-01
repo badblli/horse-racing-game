@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 
 import HorseRoster from '@/features/horses/components/HorseRoster.vue'
 import { useHorsesStore } from '@/features/horses/store'
@@ -19,19 +19,20 @@ defineProps<{
 const race = useRaceStore()
 const horses = useHorsesStore()
 
-/** The mobile tab the user picked; null follows the race. */
-const chosenTab = ref<DetailTab | null>(null)
+/** The panel a phone shows; wider screens show them all. */
+const activeTab = ref<DetailTab>('race')
 
-// Results come forward while a finished round holds the track; the schedule otherwise.
-const followedTab = computed<DetailTab>(() =>
-  race.roundStates[race.currentRoundIndex] === 'done' ? 'results' : 'schedule',
-)
-const activeTab = computed(() => chosenTab.value ?? followedTab.value)
-
+// A new schedule or a running race brings a phone back to the track.
 watch(
   () => race.schedule,
   () => {
-    chosenTab.value = null
+    activeTab.value = 'race'
+  },
+)
+watch(
+  () => race.status,
+  (status) => {
+    if (status === 'running') activeTab.value = 'race'
   },
 )
 </script>
@@ -40,13 +41,24 @@ watch(
   <div class="app">
     <AppHeader />
     <main class="layout">
-      <div class="stage"><RaceStage :rate="playbackRate" /></div>
-      <DetailTabs class="tabs" :active="activeTab" @select="chosenTab = $event" />
+      <DetailTabs class="tabs" :active="activeTab" @select="activeTab = $event" />
+      <div
+        id="panel-race"
+        class="stage"
+        :class="{ active: activeTab === 'race' }"
+        role="tabpanel"
+        aria-labelledby="tab-race"
+        data-testid="detail-panel"
+      >
+        <RaceStage :rate="playbackRate" />
+      </div>
       <div class="side">
         <div
           id="panel-schedule"
           class="schedule"
           :class="{ active: activeTab === 'schedule' }"
+          role="tabpanel"
+          aria-labelledby="tab-schedule"
           data-testid="detail-panel"
         >
           <SchedulePanel
@@ -60,6 +72,8 @@ watch(
           id="panel-results"
           class="results"
           :class="{ active: activeTab === 'results' }"
+          role="tabpanel"
+          aria-labelledby="tab-results"
           data-testid="detail-panel"
         >
           <ResultsPanel />
@@ -69,6 +83,8 @@ watch(
         id="panel-horses"
         class="horses"
         :class="{ active: activeTab === 'horses' }"
+        role="tabpanel"
+        aria-labelledby="tab-horses"
         data-testid="detail-panel"
       >
         <HorseRoster
@@ -201,30 +217,48 @@ watch(
   }
 }
 
-/* Mobile: one column, and the three detail panels share a tab control. */
+/* Phones: one panel at a time, chosen from a menu fixed above the action bar. */
 @media (max-width: 599px) {
   .app {
-    /* Room for the action bar fixed to the bottom of the screen. */
-    padding: 0 var(--space-4) 108px;
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    padding: 0;
   }
 
   .layout {
+    flex: 1;
+    min-height: 0;
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      'stage'
-      'tabs'
-      'panel';
-    gap: var(--space-4);
+    grid-template-areas: 'panel';
+    gap: 0;
+    /* Room for the menu and the action bar. */
+    padding: 0 var(--space-4) 132px;
+    overflow-y: auto;
   }
 
   .tabs {
-    grid-area: tabs;
+    position: fixed;
+    right: var(--space-4);
+    bottom: calc(82px + env(safe-area-inset-bottom, 0px));
+    left: var(--space-4);
+    z-index: 5;
+    /* Hides the panel scrolling past behind the menu. */
+    box-shadow: 0 0 0 8px var(--color-bg);
   }
 
+  .layout > .stage,
   .schedule,
   .results,
   .horses {
     grid-area: panel;
+  }
+
+  /* The stage stays mounted so the race keeps running; its action bar stays visible on its own. */
+  .layout > .stage:not(.active) {
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
   }
 
   .schedule:not(.active),

@@ -113,7 +113,7 @@ withDefaults(
 @media (max-width: 599px) {
   .lane {
     grid-template-columns: 40px minmax(0, 1fr) 30px;
-    height: 34px;
+    height: 31px;
   }
 
   .label {

@@ -183,7 +183,7 @@ import InsiderLogo from './InsiderLogo.vue'
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 0 var(--space-3);
-    padding: var(--space-4) 0 14px;
+    padding: var(--space-3) var(--space-4) 10px;
   }
 
   .links {

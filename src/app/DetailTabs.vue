@@ -1,5 +1,5 @@
 <script lang="ts">
-export type DetailTab = 'schedule' | 'results' | 'horses'
+export type DetailTab = 'race' | 'schedule' | 'results' | 'horses'
 </script>
 
 <script setup lang="ts">
@@ -10,6 +10,7 @@ defineProps<{ active: DetailTab }>()
 const emit = defineEmits<{ select: [tab: DetailTab] }>()
 
 const tabs: readonly { id: DetailTab; label: string }[] = [
+  { id: 'race', label: 'Race' },
   { id: 'schedule', label: 'Schedule' },
   { id: 'results', label: 'Results' },
   { id: 'horses', label: 'Horses' },
@@ -35,7 +36,7 @@ function onKeydown(event: KeyboardEvent, index: number) {
 </script>
 
 <template>
-  <!-- Mobile only: wider screens show every panel at once. -->
+  <!-- Phones only: wider screens show every panel at once. -->
   <div ref="list" class="tabs" role="tablist" aria-label="Details">
     <button
       v-for="(tab, index) in tabs"
@@ -65,12 +66,12 @@ function onKeydown(event: KeyboardEvent, index: number) {
 
 button {
   flex: 1;
-  min-height: 40px;
+  min-height: 38px;
   border: 0;
   border-radius: 8px;
   background: transparent;
   color: var(--color-text-2);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   cursor: pointer;
 }
 

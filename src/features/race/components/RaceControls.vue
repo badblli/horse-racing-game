@@ -89,6 +89,8 @@ function onRaceAction() {
     padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid var(--color-border);
     background: rgb(255 255 255 / 0.96);
+    /* The bar stays when the menu hides the stage it belongs to. */
+    visibility: visible;
   }
 
   /* BaseButton's root carries this component's scope, so no :deep is needed. */
