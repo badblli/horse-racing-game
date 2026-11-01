@@ -37,6 +37,13 @@ withDefaults(
 </template>
 
 <style scoped>
+/* Set on every frame. Not inherited, so a new value never restyles the whole horse inside the mover. */
+@property --progress {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
 .lane {
   display: grid;
   grid-template-columns: 196px minmax(0, 1fr) 40px;
