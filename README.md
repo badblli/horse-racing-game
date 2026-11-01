@@ -4,6 +4,12 @@ A horse racing simulator built with Vue 3, TypeScript and Pinia for the Insider 
 
 **Live demo:** https://badblli.github.io/horse-racing-game/
 
+![A round in progress: horses, track, schedule and the live order on one screen](docs/screenshots/race-desktop.png)
+
+| All six rounds finished                                              | On a phone                                                  |
+| -------------------------------------------------------------------- | ----------------------------------------------------------- |
+| ![The finished programme](docs/screenshots/finished-desktop.png)     | <img src="docs/screenshots/race-phone.png" alt="A round in progress on a phone" width="260"> |
+
 Cumhuriyet Cup is an independent, fictional simulator inspired by Türkiye's Cumhuriyet Koşusu. It is not affiliated with or endorsed by the Turkish Jockey Club (TJK) and uses none of its branding. Race rules follow the assessment brief, not the real race.
 
 ## The brief, and where each part lives
