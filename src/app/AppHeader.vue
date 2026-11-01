@@ -1,6 +1,18 @@
 <template>
   <header class="header">
-    <h1 class="brand" lang="tr"><span class="mark" aria-hidden="true"></span>Cumhuriyet Cup</h1>
+    <h1 class="brand" lang="tr">
+      <!-- The crescent and star keep the flag's proportions, cropped to a circle in the accent red. -->
+      <svg class="flag" viewBox="165 70 660 660" aria-hidden="true">
+        <circle class="red" cx="495" cy="400" r="330" />
+        <circle cx="425" cy="400" r="200" fill="#fff" />
+        <circle class="red" cx="475" cy="400" r="160" />
+        <polygon
+          points="583.334,400 764.235,458.779 652.431,304.894 652.431,495.106 764.235,341.221"
+          fill="#fff"
+        />
+      </svg>
+      Cumhuriyet Cup
+    </h1>
     <p class="subtitle">Horse Racing Simulator</p>
   </header>
 </template>
@@ -18,14 +30,16 @@
   font-weight: 600;
 }
 
-.mark {
+.flag {
   display: inline-block;
-  width: 8px;
-  height: 8px;
-  margin-right: 9px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  transform: translateY(-2px);
+  width: 22px;
+  height: 22px;
+  margin-right: 2px;
+  vertical-align: -5px;
+}
+
+.red {
+  fill: var(--color-accent);
 }
 
 .subtitle {
@@ -42,6 +56,11 @@
 
   .brand {
     font-size: 1.05rem;
+  }
+
+  .flag {
+    width: 20px;
+    height: 20px;
   }
 
   .subtitle {
