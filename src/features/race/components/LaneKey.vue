@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import ColorChip from '@/shared/components/ColorChip.vue'
-
 import type { Horse } from '@/features/horses/model/horse'
+import ColorChip from '@/shared/components/ColorChip.vue'
 
 defineProps<{
   runners: readonly { readonly lane: number; readonly horse: Horse }[]
