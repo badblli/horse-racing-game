@@ -109,4 +109,11 @@ function winnerName(index: number): string | null {
   color: var(--color-text-2);
   font-size: 0.9rem;
 }
+
+@media (min-width: 1180px) and (min-height: 640px) {
+  .panel {
+    gap: var(--space-1);
+    padding: 14px var(--space-4) var(--space-2);
+  }
+}
 </style>

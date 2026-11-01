@@ -215,4 +215,11 @@ import InsiderLogo from './InsiderLogo.vue'
     height: 40px;
   }
 }
+
+/* The one-screen layout gives the height to the panels. */
+@media (min-width: 1180px) and (min-height: 640px) {
+  .header {
+    padding: var(--space-3) var(--space-1);
+  }
+}
 </style>

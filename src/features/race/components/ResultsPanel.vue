@@ -133,4 +133,16 @@ function select(index: number) {
   color: var(--color-text-2);
   font-size: 0.9rem;
 }
+
+/* One screen: a compact panel keeps all ten places in view on a 768 px laptop. */
+@media (min-width: 1180px) and (min-height: 640px) {
+  .panel {
+    gap: var(--space-2);
+    padding: 14px var(--space-4);
+  }
+
+  .picker button {
+    min-height: 28px;
+  }
+}
 </style>

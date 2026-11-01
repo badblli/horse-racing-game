@@ -147,4 +147,25 @@ defineProps<{
     visibility: hidden;
   }
 }
+
+/* One screen: the lanes share the height the stage gives the track. */
+@media (min-width: 1180px) and (min-height: 640px) {
+  .track {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .caption {
+    flex: none;
+  }
+
+  .lanes {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+  }
+}
 </style>

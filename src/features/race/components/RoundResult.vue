@@ -128,4 +128,22 @@ const others = computed(() => finishers.value.slice(1))
 .places .time {
   font-size: 0.82rem;
 }
+
+@media (min-width: 1180px) and (min-height: 640px) {
+  .result {
+    gap: var(--space-2);
+  }
+
+  .winner {
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .winner .name {
+    font-size: 1rem;
+  }
+
+  .places li {
+    padding: 2px 0;
+  }
+}
 </style>

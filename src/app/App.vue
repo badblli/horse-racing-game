@@ -117,6 +117,60 @@ watch(
   min-width: 0;
 }
 
+/* Laptops and desktops: horses, track, schedule and results fit one screen with no page scroll. */
+@media (min-width: 1180px) and (min-height: 640px) {
+  .app {
+    display: flex;
+    flex-direction: column;
+    max-width: 1760px;
+    height: 100dvh;
+    padding: 0 var(--space-4) var(--space-4);
+    overflow: hidden;
+  }
+
+  .layout {
+    flex: 1;
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-columns: 300px minmax(0, 1fr) 330px;
+    grid-template-areas: 'horses stage side';
+    gap: var(--space-4);
+    align-items: stretch;
+  }
+
+  .layout > .stage,
+  .schedule,
+  .results,
+  .horses {
+    display: flex;
+    min-height: 0;
+  }
+
+  /* Each panel fills its slot and scrolls inside it if a slot ever runs short. */
+  .layout > .stage > *,
+  .schedule > *,
+  .results > *,
+  .horses > * {
+    flex: 1;
+    min-width: 0;
+    overflow-y: auto;
+  }
+
+  .side {
+    gap: var(--space-4);
+    min-height: 0;
+  }
+
+  .schedule {
+    flex: none;
+    max-height: 62%;
+  }
+
+  .results {
+    flex: 1;
+  }
+}
+
 /* Tablet: the track spans the width, schedule and results side by side under it. */
 @media (max-width: 1023px) {
   .app {

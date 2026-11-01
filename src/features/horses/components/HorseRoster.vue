@@ -220,4 +220,19 @@ td.color {
     padding: var(--space-4) 14px var(--space-2);
   }
 }
+
+/* One screen: the twenty rows open up as the window gets taller. */
+@media (min-width: 1180px) and (min-height: 640px) {
+  .roster {
+    padding: 14px var(--space-3);
+  }
+
+  .header {
+    padding: 0 var(--space-1);
+  }
+
+  td {
+    padding-block: clamp(4px, calc((100dvh - 700px) / 40), 9px);
+  }
+}
 </style>

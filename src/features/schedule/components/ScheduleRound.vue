@@ -157,4 +157,11 @@ const isCurrent = computed(() => ['next', 'racing', 'paused'].includes(props.sta
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+@media (min-width: 1180px) and (min-height: 640px) {
+  .row {
+    min-height: 32px;
+    padding: var(--space-1) 6px;
+  }
+}
 </style>

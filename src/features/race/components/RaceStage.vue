@@ -117,4 +117,16 @@ const announcement = computed(() => describeRaceAnnouncement(statusInput.value))
     border-radius: 14px;
   }
 }
+
+/* One screen: the track takes whatever height the heading leaves. */
+@media (min-width: 1180px) and (min-height: 640px) {
+  .stage {
+    gap: 14px;
+    padding: var(--space-5);
+  }
+
+  .top {
+    flex: none;
+  }
+}
 </style>

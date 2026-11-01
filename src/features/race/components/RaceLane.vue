@@ -134,4 +134,12 @@ withDefaults(
     margin-top: -16px;
   }
 }
+
+@media (min-width: 1180px) and (min-height: 640px) {
+  .lane {
+    flex: 1;
+    height: auto;
+    min-height: 0;
+  }
+}
 </style>
