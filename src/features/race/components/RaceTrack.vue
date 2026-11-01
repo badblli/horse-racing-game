@@ -37,6 +37,8 @@ defineProps<{
 
 <style scoped>
 .track {
+  --place-column: 40px;
+
   position: relative;
   overflow: hidden;
   border-radius: var(--radius-track);
@@ -71,9 +73,21 @@ defineProps<{
 }
 
 .lanes {
+  position: relative;
   margin: 0;
   padding: 2px 0 var(--space-2);
   list-style: none;
+}
+
+/* The finish line: one strip across every lane, painted first so the horses run over it. */
+.lanes::before {
+  position: absolute;
+  top: 0;
+  right: var(--place-column);
+  bottom: 0;
+  width: 12px;
+  background: repeating-conic-gradient(#1d1d1f 0 25%, #fff 0 50%) 0 0 / 12px 12px;
+  content: '';
 }
 
 .empty {
@@ -106,12 +120,25 @@ defineProps<{
 
 /* Column widths match RaceLane. */
 @media (max-width: 1023px) {
+  .track {
+    --place-column: 36px;
+  }
+
   .caption {
     grid-template-columns: 168px minmax(0, 1fr) 36px;
   }
 }
 
 @media (max-width: 599px) {
+  .track {
+    --place-column: 30px;
+  }
+
+  .lanes::before {
+    width: 10px;
+    background-size: 10px 10px;
+  }
+
   .caption {
     grid-template-columns: 40px minmax(0, 1fr) 30px;
   }

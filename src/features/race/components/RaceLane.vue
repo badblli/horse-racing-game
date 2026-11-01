@@ -67,7 +67,6 @@ withDefaults(
 .run {
   position: relative;
   height: 100%;
-  border-right: 2px solid rgb(29 29 31 / 0.55);
   border-left: 1px solid var(--color-track-line);
 }
 
