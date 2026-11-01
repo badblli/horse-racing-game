@@ -33,6 +33,7 @@ describe('HorseRoster', () => {
     const lanes = wrapper.findAll('[data-testid="lane"]')
 
     expect(lanes.every((lane) => lane.text() === '—')).toBe(true)
+    expect(rows(wrapper).some((row) => row.classes('resting'))).toBe(false)
     expect(wrapper.get('thead th:last-child').text()).toBe('Lane')
   })
 
@@ -47,6 +48,8 @@ describe('HorseRoster', () => {
     expect(lanes[2]).toBe('Lane 1')
     expect(lanes[15]).toBe('Lane 10')
     expect(lanes.filter((lane) => lane === '—')).toHaveLength(18)
+    expect(rows(wrapper).filter((row) => row.classes('resting'))).toHaveLength(18)
+    expect(rows(wrapper)[2]!.classes()).not.toContain('resting')
     expect(wrapper.get('thead th:last-child').text()).toBe('Round 4')
     expect(wrapper.text()).toContain('20 horses · 2 run in round 4')
   })

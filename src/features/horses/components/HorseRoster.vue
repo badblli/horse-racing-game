@@ -47,7 +47,11 @@ const rows = computed(() =>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="row in rows" :key="row.horse.id">
+        <tr
+          v-for="row in rows"
+          :key="row.horse.id"
+          :class="{ resting: showLanes && row.lane === null }"
+        >
           <td class="number">{{ row.number }}</td>
           <td>
             <span class="horse">
@@ -179,6 +183,24 @@ td.color {
   border-radius: 2px;
   background: var(--color-text-disabled);
   content: '';
+}
+
+/* Horses sitting out the round fade back; the text stays readable (4.9:1). */
+td,
+.small,
+.meter {
+  transition:
+    color 0.25s,
+    opacity 0.25s;
+}
+
+.resting td {
+  color: var(--color-text-2);
+}
+
+.resting .small,
+.resting .meter {
+  opacity: 0.4;
 }
 
 .lane {
