@@ -36,12 +36,12 @@ describe('SchedulePanel', () => {
       ['done', 'racing', 'upcoming', 'upcoming', 'upcoming', 'upcoming'],
       [winner],
     )
-    const text = rows(panel).map((row) => row.attributes('aria-label'))
+    const text = rows(panel).map((row) => [row.get('.name').text(), row.get('.state').text()])
 
     expect(text).toHaveLength(6)
-    expect(text[0]).toBe(`Round 1, 1,200 m, ${horsesById.get(winner)!.name} won`)
-    expect(text[1]).toBe('Round 2, 1,400 m, Racing')
-    expect(text[5]).toBe('Round 6, 2,200 m, Upcoming')
+    expect(text[0]).toEqual(['Round 1 1,200 m', `${horsesById.get(winner)!.name} won`])
+    expect(text[1]).toEqual(['Round 2 1,400 m', 'Racing'])
+    expect(text[5]).toEqual(['Round 6 2,200 m', 'Upcoming'])
     expect(panel.text()).toContain('1 of 6 complete')
   })
 

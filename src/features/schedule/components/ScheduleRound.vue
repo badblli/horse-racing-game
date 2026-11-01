@@ -43,7 +43,6 @@ const isCurrent = computed(() => ['next', 'racing', 'paused'].includes(props.sta
     <button
       type="button"
       class="row"
-      :aria-label="`Round ${round.number}, ${formatDistance(round.distance)}, ${label}`"
       :aria-expanded="expanded"
       :aria-controls="lineupId"
       @click="emit('toggle')"
