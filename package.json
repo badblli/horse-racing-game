@@ -10,7 +10,7 @@
     "preview:e2e": "vite preview --mode e2e --port 4174 --strictPort",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
-    "test:e2e": "playwright test --project=chromium",
+    "test:e2e": "playwright test --project=chromium --project=firefox --project=webkit --project=iphone",
     "test:visual": "node scripts/test-visual.ts",
     "build-only": "vite build",
     "build:e2e": "vite build --mode e2e",

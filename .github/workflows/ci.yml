@@ -17,7 +17,7 @@ jobs:
   validate:
     name: Lint, type-check, test, build and e2e
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
 
@@ -45,10 +45,10 @@ jobs:
       - name: Build
         run: npm run build-only
 
-      - name: Install Playwright browser
-        run: npx playwright install --with-deps chromium
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox webkit
 
-      # Builds the e2e bundle (seed and rate hooks on) and runs the race flow against it.
+      # Builds the e2e bundle (seed and rate hooks on) and runs it in Chrome, Firefox and Safari's engine.
       - name: E2E tests
         run: npm run test:e2e
 
