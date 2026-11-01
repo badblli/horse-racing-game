@@ -76,6 +76,19 @@ describe('RaceTrack', () => {
     expect(places[1]!.classes()).toContain('first')
   })
 
+  it('marks each quarter of the round in meters', () => {
+    const track = mount(RaceTrack, { props: { lanes: [lane(1)], phase: 'ready', distance: 1400 } })
+    const marks = track.findAll('.mark')
+
+    expect(marks.map((mark) => mark.text())).toEqual(['350 m', '700 m', '1,050 m'])
+    expect(marks[1]!.attributes('style')).toContain('--share: 0.5')
+  })
+
+  it('shows no marks before a schedule exists', () => {
+    const track = mount(RaceTrack, { props: { lanes: [], phase: 'idle' } })
+    expect(track.find('.mark').exists()).toBe(false)
+  })
+
   it('freezes and dims the field while paused', () => {
     const track = mount(RaceTrack, { props: { lanes: [lane(1)], phase: 'paused' } })
     expect(track.classes()).toContain('paused')

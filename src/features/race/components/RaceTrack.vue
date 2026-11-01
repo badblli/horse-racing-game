@@ -1,15 +1,29 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+
 import { RUNNERS_PER_ROUND } from '@/features/schedule/model/round'
+import { formatDistance } from '@/shared/lib/format'
 
 import type { RaceStatus } from '../model/lifecycle'
 import type { TrackLane } from '../model/race'
 import RaceLane from './RaceLane.vue'
 
-defineProps<{
+const props = defineProps<{
   /** Empty until a schedule exists. */
   lanes: readonly TrackLane[]
   phase: RaceStatus
+  /** Meters of the round on the track. */
+  distance?: number | null
 }>()
+
+const distanceMarks = computed(() =>
+  props.distance
+    ? [0.25, 0.5, 0.75].map((share) => ({
+        share,
+        label: formatDistance((props.distance as number) * share),
+      }))
+    : [],
+)
 </script>
 
 <template>
@@ -17,6 +31,17 @@ defineProps<{
     <div class="caption" aria-hidden="true">
       <span class="caption-lane">Lane</span>
       <span class="ends"><span>Start</span><span>Finish</span></span>
+    </div>
+    <!-- Comes before the lanes so the horses run over the lines. -->
+    <div v-if="distanceMarks.length" class="marks" aria-hidden="true">
+      <span
+        v-for="mark in distanceMarks"
+        :key="mark.share"
+        class="mark"
+        :style="{ '--share': mark.share }"
+      >
+        {{ mark.label }}
+      </span>
     </div>
     <ol class="lanes" aria-label="Lanes">
       <template v-if="lanes.length">
@@ -31,7 +56,10 @@ defineProps<{
 
 <style scoped>
 .track {
+  --label-column: 196px;
   --place-column: 40px;
+  /* From a horse's tail to its nose: the nose starts this far into the run. See RaceLane. */
+  --horse-length: 52px;
 
   position: relative;
   overflow: hidden;
@@ -73,6 +101,37 @@ defineProps<{
   list-style: none;
 }
 
+/* The run's column, so a mark sits where a horse's nose is at that distance. */
+.marks {
+  position: absolute;
+  top: 0;
+  right: var(--place-column);
+  bottom: 0;
+  left: var(--label-column);
+}
+
+.mark {
+  --at: calc(var(--horse-length) + (100% - var(--horse-length)) * var(--share));
+
+  position: absolute;
+  top: var(--space-2);
+  left: var(--at);
+  color: #44514a;
+  font-size: var(--font-size-caption);
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.mark::after {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  width: 1px;
+  height: 100vh;
+  background: var(--color-track-line);
+  content: '';
+}
+
 /* The finish line: one strip across every lane, painted first so the horses run over it. */
 .lanes::before {
   position: absolute;
@@ -87,6 +146,7 @@ defineProps<{
 /* Column widths match RaceLane. */
 @media (max-width: 1023px) {
   .track {
+    --label-column: 168px;
     --place-column: 36px;
   }
 
@@ -97,7 +157,9 @@ defineProps<{
 
 @media (max-width: 599px) {
   .track {
+    --label-column: 40px;
     --place-column: 30px;
+    --horse-length: 38px;
   }
 
   .lanes::before {

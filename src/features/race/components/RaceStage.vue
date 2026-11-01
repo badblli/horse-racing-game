@@ -115,7 +115,12 @@ const announcement = computed(() => describeRaceAnnouncement(statusInput.value))
       />
     </div>
     <!-- Keyed by round so every new round's lanes fade in. -->
-    <RaceTrack :key="race.currentRound?.number" :lanes="lanes" :phase="race.status" />
+    <RaceTrack
+      :key="race.currentRound?.number"
+      :lanes="lanes"
+      :phase="race.status"
+      :distance="race.currentRound?.distance"
+    />
     <LaneKey :runners="keyRunners" :ranked="order !== null" />
     <RaceAnnouncer :message="announcement" />
   </section>
