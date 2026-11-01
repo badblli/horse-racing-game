@@ -14,6 +14,7 @@ import {
   type RaceState,
 } from './model/lifecycle'
 import type { Placing, RoundSimulation } from './model/race'
+import type { SavedRace } from './model/saved-race'
 import { simulateRound } from './model/simulate-round'
 import { placingsOf } from './model/standings'
 
@@ -91,12 +92,8 @@ export const useRaceStore = defineStore('race', () => {
     results.value = []
   }
 
-  function generate(): boolean {
-    if (seed.value === null) throw new Error('Start a session before generating a schedule')
-    if (!dispatch({ type: 'generate' })) return false
-
-    const sessionSeed = seed.value
-    const n = ++generation.value
+  /** Builds schedule `n` of the session. The same seed and `n` always give the same programme. */
+  function buildProgramme(sessionSeed: number, n: number) {
     const rounds = createSchedule(
       horses.roster,
       createRng(deriveSeed(sessionSeed, `schedule:${n}`)),
@@ -113,7 +110,39 @@ export const useRaceStore = defineStore('race', () => {
       ),
     )
     results.value = []
+  }
+
+  function generate(): boolean {
+    if (seed.value === null) throw new Error('Start a session before generating a schedule')
+    if (!dispatch({ type: 'generate' })) return false
+    buildProgramme(seed.value, ++generation.value)
     return true
+  }
+
+  function resultOf(simulation: RoundSimulation): RoundResult {
+    return Object.freeze({
+      roundNumber: simulation.roundNumber,
+      distance: simulation.distance,
+      placings: placingsOf(simulation),
+    })
+  }
+
+  /** What to save to rebuild this race later; null until there is a schedule to come back to. */
+  function savedRace(time: number): SavedRace | null {
+    return seed.value !== null && generation.value > 0
+      ? { seed: seed.value, generation: generation.value, state: state.value, time }
+      : null
+  }
+
+  /** Rebuilds a saved race from its seed; only the numbers were stored. */
+  function restoreSession(saved: SavedRace) {
+    startSession(saved.seed)
+    generation.value = saved.generation
+    buildProgramme(saved.seed, saved.generation)
+    results.value = Object.freeze(
+      simulations.value.slice(0, saved.state.completedRounds).map(resultOf),
+    )
+    state.value = saved.state
   }
 
   const start = () => dispatch({ type: 'start' })
@@ -124,14 +153,7 @@ export const useRaceStore = defineStore('race', () => {
   function completeRound(index: number): boolean {
     const simulation = simulations.value[index]
     if (!simulation || !dispatch({ type: 'completeRound', round: index })) return false
-    results.value = Object.freeze([
-      ...results.value,
-      Object.freeze({
-        roundNumber: simulation.roundNumber,
-        distance: simulation.distance,
-        placings: placingsOf(simulation),
-      }),
-    ])
+    results.value = Object.freeze([...results.value, resultOf(simulation)])
     return true
   }
 
@@ -150,6 +172,8 @@ export const useRaceStore = defineStore('race', () => {
     winners,
     results,
     startSession,
+    restoreSession,
+    savedRace,
     generate,
     start,
     pause,

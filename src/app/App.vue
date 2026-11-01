@@ -6,6 +6,7 @@ import { useHorsesStore } from '@/features/horses/store'
 import RaceStage from '@/features/race/components/RaceStage.vue'
 import ResultsPanel from '@/features/race/components/ResultsPanel.vue'
 import { useRaceClock } from '@/features/race/composables/useRaceClock'
+import { useSavedRace } from '@/features/race/composables/useSavedRace'
 import { useRaceStore } from '@/features/race/store'
 import SchedulePanel from '@/features/schedule/components/SchedulePanel.vue'
 
@@ -15,12 +16,15 @@ import DetailTabs, { type DetailTab } from './DetailTabs.vue'
 const props = defineProps<{
   /** Race seconds per real second; only the e2e build changes it. */
   playbackRate?: number
+  /** Race seconds to resume a restored round from. */
+  startTime?: number
 }>()
 
 const race = useRaceStore()
 const horses = useHorsesStore()
 // Owned here because more than one panel reads the race time.
-const { time } = useRaceClock({ rate: props.playbackRate })
+const { time } = useRaceClock({ rate: props.playbackRate, startTime: props.startTime })
+useSavedRace(time)
 
 /** The panel a phone shows; wider screens show them all. */
 const activeTab = ref<DetailTab>('race')

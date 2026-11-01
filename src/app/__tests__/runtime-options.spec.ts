@@ -14,7 +14,17 @@ describe('readRuntimeOptions', () => {
   })
 
   it('reads ?seed and ?rate in the e2e build', () => {
-    expect(readRuntimeOptions('?seed=1923&rate=60', true)).toEqual({ seed: 1923, rate: 60 })
+    expect(readRuntimeOptions('?seed=1923&rate=60', true)).toEqual({
+      seed: 1923,
+      rate: 60,
+      restore: false,
+    })
+  })
+
+  it('restores a saved race unless a test fixes the seed', () => {
+    expect(readRuntimeOptions('', false).restore).toBe(true)
+    expect(readRuntimeOptions('?seed=1923', false).restore).toBe(true)
+    expect(readRuntimeOptions('?rate=60', true).restore).toBe(true)
   })
 
   it('falls back to defaults for missing or invalid values', () => {
