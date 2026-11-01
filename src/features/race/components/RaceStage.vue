@@ -9,7 +9,7 @@ import {
   type RaceStatusInput,
 } from '../model/describe-status'
 import type { TrackLane } from '../model/race'
-import { distanceAt, leaderAt } from '../model/standings'
+import { distanceAt, leaderAt, rankAt } from '../model/standings'
 import { useRaceStore } from '../store'
 import LaneKey from './LaneKey.vue'
 import RaceAnnouncer from './RaceAnnouncer.vue'
@@ -66,6 +66,21 @@ const statusInput = computed<RaceStatusInput>(() => {
   }
 })
 
+/** Horse ids in their current order once the race is on: the live ranking, then the result. */
+const order = computed(() => {
+  if (result.value) return result.value.placings.map((placing) => placing.horseId)
+  const simulation = race.currentSimulation
+  return simulation && inPlay.value && props.time > 0
+    ? rankAt(simulation, props.time).map((runner) => runner.horseId)
+    : null
+})
+
+const keyLanes = computed(() =>
+  order.value
+    ? order.value.flatMap((id) => lanes.value.find((item) => item.horse.id === id) ?? [])
+    : lanes.value,
+)
+
 /** The color of the horse the status line names: the leader, then the round's winner. */
 const namedHorseColor = computed(() => {
   const named = leader.value ?? result.value?.placings[0]
@@ -95,7 +110,7 @@ const announcement = computed(() => describeRaceAnnouncement(statusInput.value))
       />
     </div>
     <RaceTrack :lanes="lanes" :phase="race.status" />
-    <LaneKey :lanes="lanes" />
+    <LaneKey :lanes="keyLanes" :ranked="order !== null" />
     <RaceAnnouncer :message="announcement" />
   </section>
 </template>

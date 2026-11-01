@@ -6,7 +6,7 @@ import { useHorsesStore } from '@/features/horses/store'
 import { readableText } from '@/shared/lib/color'
 
 import RaceStage from '../components/RaceStage.vue'
-import { leaderAt } from '../model/standings'
+import { leaderAt, rankAt } from '../model/standings'
 import { useRaceStore } from '../store'
 
 function mountStage() {
@@ -102,6 +102,29 @@ describe('RaceStage', () => {
     await stage.wrapper.vm.$nextTick()
     const winner = stage.race.results[0]!.placings[0]!
     expect((name().element as HTMLElement).style.color).toBe(colorOf(winner.horseId))
+  })
+
+  it('lists the runners by lane, then live order, then finishing order', async () => {
+    const stage = mountStage()
+    const horses = useHorsesStore()
+    const listed = () => stage.wrapper.findAll('.key .name').map((name) => name.text())
+    const namesOf = (runners: readonly { horseId: string }[]) =>
+      runners.map((runner) => horses.horsesById.get(runner.horseId)!.name)
+
+    stage.race.generate()
+    await stage.wrapper.vm.$nextTick()
+    const simulation = stage.race.currentSimulation!
+    expect(listed()).toEqual(namesOf(simulation.runners))
+    expect(stage.wrapper.find('.key .position').exists()).toBe(false)
+
+    stage.race.start()
+    await stage.wrapper.setProps({ time: 20 })
+    expect(listed()).toEqual(namesOf(rankAt(simulation, 20)))
+    expect(stage.wrapper.findAll('.key .position')).toHaveLength(10)
+
+    stage.race.completeRound(0)
+    await stage.wrapper.vm.$nextTick()
+    expect(listed()).toEqual(namesOf(stage.race.results[0]!.placings))
   })
 
   it('places the horses by the race time it is given', async () => {
