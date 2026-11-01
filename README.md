@@ -6,16 +6,33 @@ A horse racing simulator built with Vue 3, TypeScript and Pinia for the Insider 
 
 Cumhuriyet Cup is an independent, fictional simulator inspired by Türkiye's Cumhuriyet Koşusu. It is not affiliated with or endorsed by the Turkish Jockey Club (TJK) and uses none of its branding. Race rules follow the assessment brief, not the real race.
 
+## The brief, and where each part lives
+
+[`e2e/requirements.spec.ts`](e2e/requirements.spec.ts) has a test for every behaviour in this table.
+
+| Brief                                                     | Where                                                                                                                                                                                                     |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A randomly generated list of horses                       | [`create-roster.ts`](src/features/horses/model/create-roster.ts), [`HorseRoster.vue`](src/features/horses/components/HorseRoster.vue)                                                                     |
+| Generate creates a six-round schedule                     | [`create-schedule.ts`](src/features/schedule/model/create-schedule.ts), `generate()` in [`race/store.ts`](src/features/race/store.ts)                                                                     |
+| Start runs one round at a time                            | [`lifecycle.ts`](src/features/race/model/lifecycle.ts), [`useRaceClock.ts`](src/features/race/composables/useRaceClock.ts)                                                                                |
+| Results appear in the Results area as each round ends     | `completeRound()` in the race store, [`ResultsPanel.vue`](src/features/race/components/ResultsPanel.vue)                                                                                                  |
+| Horses visibly move                                       | [`RaceLane.vue`](src/features/race/components/RaceLane.vue), [`HorseFigure.vue`](src/features/horses/components/HorseFigure.vue)                                                                          |
+| 20 horses, unique colors, condition 1 to 100              | [`horse.ts`](src/features/horses/model/horse.ts), [`horse-colors.ts`](src/features/horses/model/horse-colors.ts)                                                                                          |
+| Six rounds of ten horses, from 1,200 m to 2,200 m         | [`round.ts`](src/features/schedule/model/round.ts)                                                                                                                                                        |
+| Vuex or Pinia; component-based                            | Two Pinia setup stores; the feature folders under `src/features`                                                                                                                                          |
+| Bonus: unit, end-to-end and visual tests                  | `__tests__` folders, [`e2e/`](e2e/); see [Testing](#testing)                                                                                                                                              |
+
 ## Features
 
-- A roster of 20 horses, each with a name, a unique color and a condition from 1 to 100, generated at startup
+- A roster of 20 horses, each with a name, a unique color and a condition from 1 to 100, generated at startup; horses sitting out the current round fade back
 - **Generate schedule** draws ten horses for each of six rounds: 1,200, 1,400, 1,600, 1,800, 2,000 and 2,200 m
 - **Start race** runs the rounds one at a time; the horses gallop along their lanes and overtake one another
 - **Pause** and **Resume** freeze and continue the race mid-stride
-- Results appear as each round finishes; a round picker opens earlier results
-- The schedule shows each round's state and expands to its lineup; the roster shows who runs in the current round and in which lane
-- Responsive layout for desktop, tablet and mobile, with a tabbed detail view and a bottom action bar on phones
-- Keyboard and screen reader support: labelled regions, an ARIA tablist on mobile, and a polite live region for race milestones
+- The current leader stands out on the track and in the status line, and Results shows the running order live
+- The final result replaces the live order as each round finishes; a round picker opens earlier results
+- The whole game fits one screen on laptops and desktops, and phones get a menu with one panel per screen
+- A refresh brings the race back, paused where it was
+- Keyboard and screen reader support: labelled regions, an ARIA tablist on phones, and a polite live region for race milestones
 
 ## Tech stack
 
@@ -23,7 +40,7 @@ Cumhuriyet Cup is an independent, fictional simulator inspired by Türkiye's Cum
 - Pinia setup stores
 - Vite
 - Vitest and Vue Test Utils for unit and component tests
-- Playwright for end-to-end tests
+- Playwright for end-to-end and visual tests, axe for accessibility scans
 - ESLint, oxlint and Prettier
 - GitHub Actions for CI and a manual GitHub Pages deployment
 
@@ -38,10 +55,10 @@ npm install
 npm run dev
 ```
 
-To run the end-to-end tests the first time, install the Playwright browser:
+To run the end-to-end tests the first time, install the Playwright browsers:
 
 ```sh
-npx playwright install chromium
+npx playwright install chromium firefox webkit
 npm run test:e2e
 ```
 
@@ -55,6 +72,7 @@ npm run test:e2e
 | `npm run validate`        | Lint, check formatting, run unit tests and build              |
 | `npm run test:unit`       | Run unit and component tests once with Vitest                 |
 | `npm run test:unit:watch` | Run unit and component tests in watch mode                    |
+| `npm run test:coverage`   | Run unit and component tests with a coverage report           |
 | `npm run test:e2e`        | Build the test bundle and run the Playwright end-to-end tests |
 | `npm run test:visual`     | Run the visual tests in the Playwright Docker image           |
 | `npm run type-check`      | Type-check with vue-tsc                                       |
@@ -68,7 +86,7 @@ The application uses a lightweight feature-based architecture. Horses, schedulin
 
 ```
 src/
-├─ app/                 App shell: layout, header, mobile tabs, runtime options, design tokens
+├─ app/                 App shell: layout, header, phone menu, runtime options, design tokens
 ├─ features/
 │  ├─ race/             Simulation, lifecycle, race store, race clock, stage, track, results
 │  ├─ schedule/         Six-round schedule and the schedule panel
@@ -92,7 +110,9 @@ All randomness comes from a seeded generator (Mulberry32) with separate streams 
 
 **Rounds are decided up front.** When a schedule is generated, every round is simulated at once. Each horse's speed comes from its condition (condition 1 runs about 10% slower than condition 100) and its form on the day (±5%). The race is split into 100 m segments, each run at its own pace (±6%), so horses can overtake and the leader changes during a round. The result is a list of checkpoint times per horse; playback only reads it, so pausing or redrawing can never change who wins. In seeded runs the horse with the best condition wins about four rounds in ten.
 
-**Playback.** One `requestAnimationFrame` loop (`useRaceClock`) advances race time while the race is running, at ten race seconds per real second, so a 1,200 m round takes about seven seconds on screen. Frame steps are capped, so a background tab does not make the horses jump. Each horse is positioned with a CSS `transform` from its distance at the current time. When the last horse crosses the line the result is committed once, the finished round stays on the track for 2.5 seconds, and the next round starts.
+**Playback.** One `requestAnimationFrame` loop (`useRaceClock`) advances race time while the race is running, at ten race seconds per real second, so a 1,200 m round takes about seven seconds on screen. Frame steps are capped, so a background tab does not make the horses jump. Each horse is positioned with a CSS `transform` from its distance at the current time. When the last horse crosses the line the result is committed once, the finished round stays on show for four seconds so its result can be read, and the next round starts. The app owns the clock because both the track and the Results panel read the race time. Results re-renders only when the order changes, not on every frame.
+
+**Refresh.** The race is saved to `sessionStorage` as the page goes away. Only a few numbers are stored (seed, schedule number, lifecycle state, race time), because the seed rebuilds the horses, the schedule and every result. A running race comes back paused. Before any schedule exists nothing is kept, so a refresh draws new horses, and a new tab or a later visit always starts over.
 
 ## State management
 
@@ -112,9 +132,9 @@ idle ──generate──► ready ──start──► running ──pause─�
 ## Testing
 
 - **Unit and component tests (Vitest):** random utilities, formatters and color contrast; roster, schedule and simulation rules, including determinism per seed and that a better condition wins more often; the lifecycle and the race store; the race clock with a fake frame source; and the components' behaviour through their rendered output.
-- **End-to-end tests (Playwright, Chromium):** the full flow from twenty horses to all six results in order, and that pause freezes the horses and resume carries on.
-
-- **Visual tests (Playwright):** screenshots of the initial, scheduled and finished states at 1440 px and 390 px, compared with committed baselines. Rendering differs between operating systems, so the baselines are made and checked in the Playwright Linux Docker image: `npm run test:visual` runs them there (Docker required), and `npm run test:visual -- --update-snapshots` refreshes them after an intended design change.
+- **End-to-end tests (Playwright; Chromium, Firefox and WebKit, plus an iPhone profile for the phone layout):** one test per item of the brief; the full flow from twenty horses to all six results in order; that results stay final-only until a round ends; pause and resume; a refresh mid-race; and that the page does not scroll at common screen sizes.
+- **Accessibility scans (axe, Chromium):** no WCAG 2.1 A or AA violations before a schedule, with one, paused mid-race, finished, and in every phone tab.
+- **Visual tests (Playwright):** screenshots of the initial, scheduled and finished states at 1440 px, 1366 px and 390 px, compared with committed baselines. Rendering differs between operating systems, so the baselines are made and checked in the Playwright Linux Docker image: `npm run test:visual` runs them there (Docker required), and `npm run test:visual -- --update-snapshots` refreshes them after an intended design change.
 
 The end-to-end and visual tests run against a separate test build (`vite build --mode e2e`) that reads `?seed=` and `?rate=` from the URL, so every run sees the same horses and plays a round in about two seconds. The production build ignores both parameters.
 
@@ -122,11 +142,14 @@ The end-to-end and visual tests run against a separate test build (`vite build -
 
 ## Design decisions
 
-The interface is deliberately quiet. The race track is the only large element; the current round, distance and state are stated once, in the title and a single status sentence. Lineups, earlier results and the full roster are one click away through progressive disclosure, instead of competing with the live race. The palette is a warm light neutral with one burgundy accent, reserved for the primary action, the current round and the winner.
+The interface is deliberately quiet, and the site should feel like an app: on laptops and desktops the roster, the track, the schedule and the results share one screen with no page scroll. The race track is the largest element; the current round, distance and state are stated once, in the title and a single status sentence. Lineups and earlier results are one click away instead of competing with the live race. The palette is a warm light neutral with one burgundy accent, reserved for the primary action, the current round, the leader and the winner.
 
-- Every horse color is shown next to a number or a name, never on its own, and each color chip picks dark or white text for contrast.
-- On phones the lanes show only the number chip and a lane key under the track names every runner. Schedule, Results and Horses share a tab control, and the controls move to a bar fixed to the bottom of the screen.
-- With reduced motion enabled, the horses do not gallop; they still move along the track.
+- Every horse color is shown next to a number or a name, never on its own, and each color chip picks dark or white text for contrast. A horse's name in the status line takes its color, darkened only as far as it needs to stay readable.
+- The live order lives in Results, not in Schedule: Schedule says who runs when, Results says who is ahead, and the live list turns into the final result in the same place. It carries a Live label and no times, so it cannot be mistaken for a result.
+- On phones the lanes show only the number chip, and a list under the track names the runners in their current order. Race, Schedule, Results and Horses share a menu, and the controls stay in a bar fixed to the bottom of the screen.
+- Motion is short and uses `transform` and opacity where it can. With reduced motion enabled the transitions and the gallop stop; the horses still move along the track.
+
+The Insider One logo in the header credits the assessment this project was built for; it belongs to Insider One.
 
 ## Assumptions
 
@@ -139,8 +162,9 @@ The interface is deliberately quiet. The race track is the only large element; t
 
 ## Known limitations
 
-- Reloading the page starts a new session with a new roster; nothing is stored.
-- End-to-end and visual tests run in Chromium only.
+- Visual tests run in Chromium only, and the iPhone profile is an emulation on Safari's engine, not a real device.
+- Tablets keep a scrolling layout; the one-screen layout starts at 1180 px wide and 640 px tall.
+- The gallop is the most expensive part of a frame. It holds 60 fps at normal speed, but drops on a much slower device.
 - There is a single light theme.
 
 ## AI-assisted development
