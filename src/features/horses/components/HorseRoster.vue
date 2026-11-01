@@ -21,16 +21,13 @@ const subtitle = computed(() =>
     : `${props.horses.length} horses · condition ${MIN_CONDITION}–${MAX_CONDITION}`,
 )
 
-// Two side-by-side tables keep the roster short on wide screens.
-const halves = computed(() => {
-  const rows = props.horses.map((horse, index) => ({
+const rows = computed(() =>
+  props.horses.map((horse, index) => ({
     horse,
     number: String(index + 1).padStart(2, '0'),
     lane: showLanes.value ? (props.laneByHorse.get(horse.id) ?? null) : null,
-  }))
-  const middle = Math.ceil(rows.length / 2)
-  return [rows.slice(0, middle), rows.slice(middle)].filter((half) => half.length)
-})
+  })),
+)
 </script>
 
 <template>
@@ -39,48 +36,42 @@ const halves = computed(() => {
       <h2 id="horses-title">Horses</h2>
       <span>{{ subtitle }}</span>
     </div>
-    <div class="tables">
-      <table
-        v-for="(half, index) in halves"
-        :key="index"
-        :aria-label="`Horses ${half[0]!.number}–${half[half.length - 1]!.number}`"
-      >
-        <thead>
-          <tr>
-            <th scope="col">#</th>
-            <th scope="col">Horse</th>
-            <th scope="col" class="color">Color</th>
-            <th scope="col">Condition</th>
-            <th scope="col">{{ showLanes ? `Round ${roundNumber}` : 'Lane' }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="row in half" :key="row.horse.id">
-            <td class="number">{{ row.number }}</td>
-            <td>
-              <span class="horse">
-                <ColorChip class="small" :color="row.horse.color.hex" />
-                <span class="name" lang="tr">{{ row.horse.name }}</span>
-              </span>
-            </td>
-            <td class="color">{{ row.horse.color.name }}</td>
-            <td>
-              <span class="condition">
-                <span
-                  class="meter"
-                  :style="{ '--condition': `${row.horse.condition}%` }"
-                  aria-hidden="true"
-                />
-                {{ row.horse.condition }}
-              </span>
-            </td>
-            <td class="lane" :class="{ none: row.lane === null }" data-testid="lane">
-              {{ row.lane === null ? '—' : `Lane ${row.lane}` }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <table aria-labelledby="horses-title">
+      <thead>
+        <tr>
+          <th scope="col" class="number">#</th>
+          <th scope="col">Horse</th>
+          <th scope="col" class="color">Color</th>
+          <th scope="col">Condition</th>
+          <th scope="col">{{ showLanes ? `Round ${roundNumber}` : 'Lane' }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="row in rows" :key="row.horse.id">
+          <td class="number">{{ row.number }}</td>
+          <td>
+            <span class="horse">
+              <ColorChip class="small" :color="row.horse.color.hex" />
+              <span class="name" lang="tr">{{ row.horse.name }}</span>
+            </span>
+          </td>
+          <td class="color">{{ row.horse.color.name }}</td>
+          <td>
+            <span class="condition">
+              <span
+                class="meter"
+                :style="{ '--condition': `${row.horse.condition}%` }"
+                aria-hidden="true"
+              />
+              {{ row.horse.condition }}
+            </span>
+          </td>
+          <td class="lane" :class="{ none: row.lane === null }" data-testid="lane">
+            {{ row.lane === null ? '—' : `Lane ${row.lane}` }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </section>
 </template>
 
@@ -89,6 +80,8 @@ const halves = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  /* Columns follow the panel's own width, which the page layout decides. */
+  container-type: inline-size;
   padding: var(--space-5) var(--space-6) var(--space-4);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
@@ -110,16 +103,6 @@ const halves = computed(() => {
 .header span {
   color: var(--color-text-2);
   font-size: 0.85rem;
-}
-
-.tables {
-  /* The widest a table gets with the longest names in the pool. */
-  --table-min: 375px;
-
-  display: grid;
-  /* Side by side when both tables fit, one under the other otherwise. */
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--table-min)), 1fr));
-  gap: 0 var(--space-7);
 }
 
 table {
@@ -208,24 +191,19 @@ td.color {
   font-weight: 400;
 }
 
-/* Tablet: the color name goes; the chip still shows the color. */
-@media (max-width: 1023px) {
-  .tables {
-    --table-min: 305px;
-  }
-
+/* A narrower panel drops the color name; the chip still shows the color. */
+@container (max-width: 560px) {
   .color {
     display: none;
   }
 }
 
-/* Mobile: one table under the other, read as a single list. */
-@media (max-width: 599px) {
-  .roster {
-    padding: var(--space-4) 14px var(--space-2);
+/* The narrowest panels keep the horse, its condition and its lane in tighter cells. */
+@container (max-width: 400px) {
+  .number {
+    display: none;
   }
 
-  /* Tighter cells and a shorter meter keep four columns inside a 320 px screen. */
   th,
   td {
     padding-right: var(--space-1);
@@ -235,15 +213,11 @@ td.color {
   .meter {
     width: 32px;
   }
+}
 
-  /* The second header repeats the first, so it stays for screen readers only. */
-  table + table thead {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
+@media (max-width: 599px) {
+  .roster {
+    padding: var(--space-4) 14px var(--space-2);
   }
 }
 </style>
