@@ -8,6 +8,10 @@ export default defineConfig((env) =>
       environment: 'jsdom',
       exclude: [...configDefaults.exclude, 'e2e/**'],
       root: fileURLToPath(new URL('./', import.meta.url)),
+      coverage: {
+        include: ['src/**/*.{ts,vue}'],
+        exclude: ['src/**/__tests__/**', 'src/app/main.ts'],
+      },
     },
   }),
 )
