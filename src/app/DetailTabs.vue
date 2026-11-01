@@ -67,7 +67,8 @@ function onKeydown(event: KeyboardEvent, index: number) {
   gap: 2px;
   padding: 2px;
   border-radius: 10px;
-  background: var(--color-fill-disabled);
+  /* Unselected labels keep 4.5:1 on this fill, the same one the round picker uses. */
+  background: var(--color-fill);
 }
 
 button {
