@@ -240,7 +240,7 @@ watch(
     overflow-y: auto;
   }
 
-  .tabs {
+  .layout > .tabs {
     position: fixed;
     right: var(--space-4);
     bottom: calc(82px + env(safe-area-inset-bottom, 0px));

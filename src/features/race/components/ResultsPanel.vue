@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 
 import type { Horse } from '@/features/horses/model/horse'
 import { useHorsesStore } from '@/features/horses/store'
+import SelectionPill from '@/shared/components/SelectionPill.vue'
 import { formatDistance } from '@/shared/lib/format'
 
 import { rankAt } from '../model/standings'
@@ -68,6 +69,7 @@ function select(index: number) {
     </div>
     <template v-if="shownResult || showLive">
       <div class="picker" role="group" aria-label="Choose round">
+        <SelectionPill :index="shownRound" :count="race.schedule.length" />
         <button
           v-for="(round, index) in race.schedule"
           :key="round.number"
@@ -142,6 +144,7 @@ function select(index: number) {
 }
 
 .picker {
+  position: relative;
   display: flex;
   gap: 2px;
   padding: 2px;
@@ -150,6 +153,7 @@ function select(index: number) {
 }
 
 .picker button {
+  position: relative;
   flex: 1;
   min-height: 32px;
   border: 0;
@@ -158,11 +162,10 @@ function select(index: number) {
   color: var(--color-text-2);
   font-size: 0.85rem;
   cursor: pointer;
+  transition: color 0.2s;
 }
 
 .picker button[aria-pressed='true'] {
-  background: var(--color-surface);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
   color: var(--color-text);
   font-weight: 600;
 }

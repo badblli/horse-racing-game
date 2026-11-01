@@ -84,6 +84,7 @@ describe('ResultsPanel', () => {
       true,
     ])
     expect(picker()[2]!.attributes('aria-pressed')).toBe('true')
+    expect(panel.get('.pill').attributes('style')).toContain('--index: 2')
 
     await picker()[0]!.trigger('click')
     expect(meta()).toContain('Round 1')

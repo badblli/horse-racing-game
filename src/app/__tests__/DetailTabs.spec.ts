@@ -21,6 +21,14 @@ describe('DetailTabs', () => {
     expect(tabs[2]!.attributes('aria-controls')).toBe('panel-results')
   })
 
+  it('slides the selection to the active tab', () => {
+    const wrapper = mount(DetailTabs, { props: { active: 'results' } })
+    const pill = wrapper.get('.pill').attributes('style')
+
+    expect(pill).toContain('--index: 2')
+    expect(pill).toContain('--count: 4')
+  })
+
   it('selects a tab on click', async () => {
     const wrapper = mount(DetailTabs, { props: { active: 'schedule' } })
     await tabsOf(wrapper)[3]!.trigger('click')
