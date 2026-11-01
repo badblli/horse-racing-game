@@ -25,12 +25,11 @@ const lane = (n: number, overrides: Partial<TrackLane> = {}): TrackLane => ({
 })
 
 describe('RaceTrack', () => {
-  it('shows ten empty lanes and a note before a schedule exists', () => {
+  it('shows ten empty lanes before a schedule exists', () => {
     const track = mount(RaceTrack, { props: { lanes: [], phase: 'idle' } })
 
     expect(track.findAll('li')).toHaveLength(10)
     expect(track.findAll('svg')).toHaveLength(0)
-    expect(track.text()).toContain('No race scheduled')
   })
 
   it('places each horse by its progress along the run', () => {

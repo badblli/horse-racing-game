@@ -26,12 +26,6 @@ defineProps<{
         <RaceLane v-for="lane in RUNNERS_PER_ROUND" :key="lane" :lane="lane" :horse="null" />
       </template>
     </ol>
-    <div v-if="!lanes.length" class="empty">
-      <p>
-        <strong>No race scheduled</strong>
-        <span>Six rounds from 1,200 m to 2,200 m, ten horses each.</span>
-      </p>
-    </div>
   </div>
 </template>
 
@@ -88,34 +82,6 @@ defineProps<{
   width: 12px;
   background: repeating-conic-gradient(#1d1d1f 0 25%, #fff 0 50%) 0 0 / 12px 12px;
   content: '';
-}
-
-.empty {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: var(--space-6);
-  text-align: center;
-}
-
-.empty p {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  max-width: 360px;
-  padding: var(--space-4) 22px;
-  border-radius: var(--radius-track);
-  background: rgb(255 255 255 / 0.88);
-}
-
-.empty strong {
-  font-weight: 600;
-}
-
-.empty span {
-  color: var(--color-text-2);
-  font-size: 0.9rem;
 }
 
 /* Column widths match RaceLane. */
