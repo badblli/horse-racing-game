@@ -15,26 +15,20 @@ const props = defineProps<{
   horsesById: ReadonlyMap<string, Horse>
 }>()
 
-/** The round the user opened or closed; null follows the race. */
-const chosenRound = ref<number | null>(null)
-
-// The round on the track (or lining up next) is open unless the user picked another.
-const followedRound = computed(() =>
-  props.roundStates.findIndex((state) => state !== 'done' && state !== 'upcoming'),
-)
-const expandedRound = computed(() => chosenRound.value ?? followedRound.value)
+/** The round whose lineup the user opened. The track already names the current runners. */
+const openRound = ref<number | null>(null)
 
 watch(
   () => props.rounds,
   () => {
-    chosenRound.value = null
+    openRound.value = null
   },
 )
 
 const completed = computed(() => props.roundStates.filter((state) => state === 'done').length)
 
 function toggle(index: number) {
-  chosenRound.value = expandedRound.value === index ? -1 : index
+  openRound.value = openRound.value === index ? null : index
 }
 
 function runnersOf(round: Round): Horse[] {
@@ -61,7 +55,7 @@ function winnerName(index: number): string | null {
         :state="roundStates[index] ?? 'upcoming'"
         :runners="runnersOf(round)"
         :winner-name="winnerName(index)"
-        :expanded="expandedRound === index"
+        :expanded="openRound === index"
         @toggle="toggle(index)"
       />
     </ol>
