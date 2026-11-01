@@ -29,7 +29,10 @@ withDefaults(
         <HorseFigure :color="horse.color.hex" :lane="lane" :galloping="galloping" />
       </div>
     </div>
-    <span class="place" :class="{ first: place === 1 }" data-testid="place">{{ place ?? '' }}</span>
+    <!-- The leader wears the winner's badge; the rest of the order is in the Results panel. -->
+    <span class="place" :class="{ first: place === 1 || isLeader }" data-testid="place">{{
+      place ?? (isLeader ? 1 : '')
+    }}</span>
   </li>
 </template>
 
@@ -60,7 +63,12 @@ withDefaults(
   white-space: nowrap;
 }
 
+.emphasised {
+  background: rgb(161 43 58 / 0.1);
+}
+
 .emphasised .name {
+  color: var(--color-accent);
   font-weight: 600;
 }
 

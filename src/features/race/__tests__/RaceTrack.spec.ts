@@ -56,6 +56,17 @@ describe('RaceTrack', () => {
     expect(second!.classes()).not.toContain('emphasised')
   })
 
+  it('gives the leader the first-place badge and no number to the rest', () => {
+    const track = mount(RaceTrack, {
+      props: { lanes: [lane(1), lane(2, { isLeader: true })], phase: 'running' },
+    })
+    const places = track.findAll('[data-testid="place"]')
+
+    expect(places.map((place) => place.text())).toEqual(['', '1'])
+    expect(places[1]!.classes()).toContain('first')
+    expect(places[0]!.classes()).not.toContain('first')
+  })
+
   it('shows the finishing places and marks the winner', () => {
     const track = mount(RaceTrack, {
       props: { lanes: [lane(1, { place: 2 }), lane(2, { place: 1 })], phase: 'running' },
