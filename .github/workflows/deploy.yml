@@ -1,6 +1,7 @@
 name: Deploy to GitHub Pages
 
-# Runs only when started by hand from the Actions tab.
+# Runs only when started by hand: Actions tab → Deploy to GitHub Pages → Run workflow,
+# or `gh workflow run deploy.yml`.
 on:
   workflow_dispatch:
 
