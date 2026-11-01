@@ -56,6 +56,7 @@ npm run test:e2e
 | `npm run test:unit`       | Run unit and component tests once with Vitest                 |
 | `npm run test:unit:watch` | Run unit and component tests in watch mode                    |
 | `npm run test:e2e`        | Build the test bundle and run the Playwright end-to-end tests |
+| `npm run test:visual`     | Run the visual tests in the Playwright Docker image           |
 | `npm run type-check`      | Type-check with vue-tsc                                       |
 | `npm run lint`            | Lint with oxlint and ESLint                                   |
 | `npm run lint:fix`        | Lint and apply automatic fixes                                |
@@ -113,9 +114,11 @@ idle ──generate──► ready ──start──► running ──pause─�
 - **Unit and component tests (Vitest):** random utilities, formatters and color contrast; roster, schedule and simulation rules, including determinism per seed and that a better condition wins more often; the lifecycle and the race store; the race clock with a fake frame source; and the components' behaviour through their rendered output.
 - **End-to-end tests (Playwright, Chromium):** the full flow from twenty horses to all six results in order, and that pause freezes the horses and resume carries on.
 
-The end-to-end tests run against a separate test build (`vite build --mode e2e`) that reads `?seed=` and `?rate=` from the URL, so every run sees the same horses and plays a round in about two seconds. The production build ignores both parameters.
+- **Visual tests (Playwright):** screenshots of the initial, scheduled and finished states at 1440 px and 390 px, compared with committed baselines. Rendering differs between operating systems, so the baselines are made and checked in the Playwright Linux Docker image: `npm run test:visual` runs them there (Docker required), and `npm run test:visual -- --update-snapshots` refreshes them after an intended design change.
 
-**CI** runs on every push to `main` and on pull requests: lint, formatting, type-check, unit tests, build and end-to-end tests. **Deployment** to GitHub Pages is a separate workflow that is started by hand; it validates, builds with the `/horse-racing-game/` base path and publishes.
+The end-to-end and visual tests run against a separate test build (`vite build --mode e2e`) that reads `?seed=` and `?rate=` from the URL, so every run sees the same horses and plays a round in about two seconds. The production build ignores both parameters.
+
+**CI** runs on every push to `main` and on pull requests: lint, formatting, type-check, unit tests, build and end-to-end tests, with the visual tests in a second job inside the same Docker image. **Deployment** to GitHub Pages is a separate workflow that is started by hand; it validates, builds with the `/horse-racing-game/` base path and publishes.
 
 ## Design decisions
 
@@ -137,9 +140,8 @@ The interface is deliberately quiet. The race track is the only large element; t
 ## Known limitations
 
 - Reloading the page starts a new session with a new roster; nothing is stored.
-- End-to-end tests run in Chromium only.
+- End-to-end and visual tests run in Chromium only.
 - There is a single light theme.
-- Visual regression tests are not included yet.
 
 ## AI-assisted development
 

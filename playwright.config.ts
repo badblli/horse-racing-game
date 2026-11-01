@@ -33,6 +33,16 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
       },
+      testIgnore: /visual\.spec\.ts/,
+    },
+    /* Screenshots differ between operating systems, so the baselines are made and checked in the
+       Playwright Linux image only: `npm run test:visual` locally, and the visual job in CI. */
+    {
+      name: 'visual',
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+      testMatch: /visual\.spec\.ts/,
     },
   ],
 
