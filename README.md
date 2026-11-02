@@ -146,6 +146,18 @@ The end-to-end and visual tests run against a separate test build (`vite build -
 
 **CI** runs on every push to `main` and on pull requests: lint, formatting, type-check, unit tests, build and end-to-end tests, with the visual tests in a second job inside the same Docker image. **Deployment** to GitHub Pages is a separate workflow that is started by hand; it validates, builds with the `/horse-racing-game/` base path and publishes.
 
+## Lighthouse
+
+Measured on the live site with Lighthouse 13.6 on 2 November 2026, one run per preset:
+
+| Category         | Mobile | Desktop |
+| ---------------- | ------ | ------- |
+| Performance      | 98     | 100     |
+| Accessibility    | 100    | 100     |
+| Best Practices   | 100    | 100     |
+| SEO              | 100    | 100     |
+| Agentic Browsing | 100    | 100     |
+
 ## Design decisions
 
 The interface is deliberately quiet, and the site should feel like an app: on laptops and desktops the roster, the track, the schedule and the results share one screen with no page scroll. The race track is the largest element; the current round, distance and state are stated once, in the title and a single status sentence. Lineups and earlier results are one click away instead of competing with the live race. The palette is a warm light neutral with one burgundy accent, reserved for the primary action, the current round, the leader and the winner.
