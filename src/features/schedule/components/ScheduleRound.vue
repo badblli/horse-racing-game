@@ -43,7 +43,6 @@ const isCurrent = computed(() => ['next', 'racing', 'paused'].includes(props.sta
     <button
       type="button"
       class="row"
-      :aria-label="`Round ${round.number}, ${formatDistance(round.distance)}, ${label}`"
       :aria-expanded="expanded"
       :aria-controls="lineupId"
       @click="emit('toggle')"
@@ -62,12 +61,19 @@ const isCurrent = computed(() => ['next', 'racing', 'paused'].includes(props.sta
         <path d="M4.5 2.5L8 6l-3.5 3.5" />
       </svg>
     </button>
-    <ul v-if="expanded" :id="lineupId" class="lineup" :aria-label="`Round ${round.number} lineup`">
-      <li v-for="(horse, index) in runners" :key="horse.id">
-        <ColorChip :color="horse.color.hex" :label="index + 1" />
-        <span class="horse" lang="tr">{{ horse.name }}</span>
-      </li>
-    </ul>
+    <Transition name="expand">
+      <ul
+        v-if="expanded"
+        :id="lineupId"
+        class="lineup"
+        :aria-label="`Round ${round.number} lineup`"
+      >
+        <li v-for="(horse, index) in runners" :key="horse.id">
+          <ColorChip :color="horse.color.hex" :label="index + 1" />
+          <span class="horse" lang="tr">{{ horse.name }}</span>
+        </li>
+      </ul>
+    </Transition>
   </li>
 </template>
 
@@ -144,6 +150,28 @@ const isCurrent = computed(() => ['next', 'racing', 'paused'].includes(props.sta
   list-style: none;
 }
 
+/* The lineup opens and closes instead of jumping; 190 px is more than its five rows need. */
+.lineup.expand-enter-active,
+.lineup.expand-leave-active {
+  overflow: hidden;
+  transition:
+    max-height 0.26s ease,
+    opacity 0.2s ease,
+    padding-block 0.26s ease;
+}
+
+.lineup.expand-enter-from,
+.lineup.expand-leave-to {
+  max-height: 0;
+  padding-block: 0;
+  opacity: 0;
+}
+
+.lineup.expand-enter-to,
+.lineup.expand-leave-from {
+  max-height: 190px;
+}
+
 .lineup li {
   display: flex;
   align-items: center;
@@ -156,5 +184,12 @@ const isCurrent = computed(() => ['next', 'racing', 'paused'].includes(props.sta
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+@media (min-width: 1180px) and (min-height: 640px) {
+  .row {
+    min-height: 32px;
+    padding: var(--space-1) 6px;
+  }
 }
 </style>

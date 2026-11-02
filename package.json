@@ -10,7 +10,8 @@
     "preview:e2e": "vite preview --mode e2e --port 4174 --strictPort",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
-    "test:e2e": "playwright test --project=chromium",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test --project=chromium --project=firefox --project=webkit --project=iphone",
     "test:visual": "node scripts/test-visual.ts",
     "build-only": "vite build",
     "build:e2e": "vite build --mode e2e",
@@ -29,11 +30,13 @@
     "vue": "^3.5.42"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "^1.63.0",
     "@tsconfig/node24": "^24.0.5",
     "@types/jsdom": "^30.0.0",
     "@types/node": "^24.13.4",
     "@vitejs/plugin-vue": "^6.0.8",
+    "@vitest/coverage-v8": "^4.1.12",
     "@vitest/eslint-plugin": "^1.6.27",
     "@vue/eslint-config-typescript": "^14.9.0",
     "@vue/test-utils": "^2.5.0",

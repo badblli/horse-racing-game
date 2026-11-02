@@ -3,14 +3,13 @@ import { computed } from 'vue'
 
 import { useHorsesStore } from '@/features/horses/store'
 
-import { PLAYBACK_RATE, useRaceClock } from '../composables/useRaceClock'
 import {
   describeRaceAnnouncement,
   describeRaceStatus,
   type RaceStatusInput,
 } from '../model/describe-status'
-import type { TrackLane } from '../model/race'
-import { distanceAt, leaderAt } from '../model/standings'
+import type { RunnerTrajectory, TrackLane } from '../model/race'
+import { distanceAt, leaderAt, rankAt } from '../model/standings'
 import { useRaceStore } from '../store'
 import LaneKey from './LaneKey.vue'
 import RaceAnnouncer from './RaceAnnouncer.vue'
@@ -18,11 +17,13 @@ import RaceControls from './RaceControls.vue'
 import RaceHeading from './RaceHeading.vue'
 import RaceTrack from './RaceTrack.vue'
 
-const props = withDefaults(defineProps<{ rate?: number }>(), { rate: PLAYBACK_RATE })
+const props = defineProps<{
+  /** Race seconds since the current round started. */
+  time: number
+}>()
 
 const race = useRaceStore()
 const horses = useHorsesStore()
-const { time } = useRaceClock({ rate: props.rate })
 
 const nameOf = (horseId: string) => horses.horsesById.get(horseId)?.name ?? horseId
 
@@ -31,7 +32,7 @@ const result = computed(() => race.results[race.currentRoundIndex] ?? null)
 const inPlay = computed(() => race.status === 'running' || race.status === 'paused')
 const leader = computed(() => {
   const simulation = race.currentSimulation
-  return simulation && inPlay.value && !result.value ? leaderAt(simulation, time.value) : null
+  return simulation && inPlay.value && !result.value ? leaderAt(simulation, props.time) : null
 })
 
 const lanes = computed<TrackLane[]>(() => {
@@ -47,10 +48,10 @@ const lanes = computed<TrackLane[]>(() => {
     return {
       lane: runner.lane,
       horse,
-      progress: distanceAt(runner, time.value) / simulation.distance,
+      progress: distanceAt(runner, props.time) / simulation.distance,
       place: places.get(runner.horseId) ?? null,
       isLeader: runner === leader.value,
-      galloping: inPlay.value && time.value > 0 && time.value < runner.finishTime,
+      galloping: inPlay.value && props.time > 0 && props.time < runner.finishTime,
     }
   })
 })
@@ -65,6 +66,32 @@ const statusInput = computed<RaceStatusInput>(() => {
   }
 })
 
+/**
+ * Runners in their current order once the race is on: the live ranking, then the result.
+ * The time changes every frame but the order rarely does; keeping the same array spares a render.
+ */
+const order = computed<readonly RunnerTrajectory[] | null>((previous) => {
+  const simulation = race.currentSimulation
+  if (!simulation) return null
+  const running = inPlay.value && props.time > 0
+  if (!result.value && !running) return null
+  const next = rankAt(simulation, result.value ? simulation.duration : props.time)
+  return previous && next.every((runner, index) => runner === previous[index]) ? previous : next
+})
+
+const keyRunners = computed(() =>
+  (order.value ?? race.currentSimulation?.runners ?? []).flatMap((runner) => {
+    const horse = horses.horsesById.get(runner.horseId)
+    return horse ? [{ lane: runner.lane, horse }] : []
+  }),
+)
+
+/** The color of the horse the status line names: the leader, then the round's winner. */
+const namedHorseColor = computed(() => {
+  const named = leader.value ?? result.value?.placings[0]
+  return named ? (horses.horsesById.get(named.horseId)?.color.hex ?? null) : null
+})
+
 const statusMessage = computed(() => describeRaceStatus(statusInput.value))
 const announcement = computed(() => describeRaceAnnouncement(statusInput.value))
 </script>
@@ -76,6 +103,7 @@ const announcement = computed(() => describeRaceAnnouncement(statusInput.value))
         :round-number="race.currentRound?.number ?? null"
         :distance="race.currentRound?.distance ?? null"
         :status-message="statusMessage"
+        :horse-color="namedHorseColor"
       />
       <RaceControls
         :can-generate="race.canGenerate"
@@ -86,8 +114,14 @@ const announcement = computed(() => describeRaceAnnouncement(statusInput.value))
         @resume="race.resume()"
       />
     </div>
-    <RaceTrack :lanes="lanes" :phase="race.status" />
-    <LaneKey :lanes="lanes" />
+    <!-- Keyed by round so every new round's lanes fade in. -->
+    <RaceTrack
+      :key="race.currentRound?.number"
+      :lanes="lanes"
+      :phase="race.status"
+      :distance="race.currentRound?.distance"
+    />
+    <LaneKey :runners="keyRunners" :ranked="order !== null" />
     <RaceAnnouncer :message="announcement" />
   </section>
 </template>
@@ -115,6 +149,18 @@ const announcement = computed(() => describeRaceAnnouncement(statusInput.value))
     gap: 14px;
     padding: 18px 14px var(--space-4);
     border-radius: 14px;
+  }
+}
+
+/* One screen: the track takes whatever height the heading leaves. */
+@media (min-width: 1180px) and (min-height: 640px) {
+  .stage {
+    gap: 14px;
+    padding: var(--space-5);
+  }
+
+  .top {
+    flex: none;
   }
 }
 </style>

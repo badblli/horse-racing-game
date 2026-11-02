@@ -4,14 +4,16 @@ import { useRaceStore } from '../store'
 
 /** Race seconds shown per real second: 1,200 m takes about 7 s on screen. */
 export const PLAYBACK_RATE = 10
-/** Real seconds the finished round stays on the track before the next one starts. */
-export const HOLD_SECONDS = 2.5
+/** Real seconds the finished round stays on show, long enough to read its result. */
+export const HOLD_SECONDS = 4
 /** Longest frame step in real seconds, so a background tab does not make horses jump. */
 export const MAX_FRAME_SECONDS = 0.1
 
 export interface RaceClockOptions {
   /** Race seconds per real second; tests raise it to finish quickly. */
   rate?: number
+  /** Race seconds to resume the current round from. */
+  startTime?: number
   requestFrame?: (callback: FrameRequestCallback) => number
   cancelFrame?: (id: number) => void
 }
@@ -23,13 +25,14 @@ export interface RaceClockOptions {
  */
 export function useRaceClock({
   rate = PLAYBACK_RATE,
+  startTime = 0,
   requestFrame = (callback) => window.requestAnimationFrame(callback),
   cancelFrame = (id) => window.cancelAnimationFrame(id),
 }: RaceClockOptions = {}) {
   const race = useRaceStore()
 
   /** Race seconds since the current round started. */
-  const time = shallowRef(0)
+  const time = shallowRef(startTime)
   /** Race seconds spent holding a finished round; scaled with the rate so tests stay fast. */
   let held = 0
   let frameId: number | null = null

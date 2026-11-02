@@ -1,19 +1,24 @@
 <script lang="ts">
-export type DetailTab = 'schedule' | 'results' | 'horses'
+export type DetailTab = 'race' | 'schedule' | 'results' | 'horses'
 </script>
 
 <script setup lang="ts">
-import { useTemplateRef } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 
-defineProps<{ active: DetailTab }>()
+import SelectionPill from '@/shared/components/SelectionPill.vue'
+
+const props = defineProps<{ active: DetailTab }>()
 
 const emit = defineEmits<{ select: [tab: DetailTab] }>()
 
 const tabs: readonly { id: DetailTab; label: string }[] = [
+  { id: 'race', label: 'Race' },
   { id: 'schedule', label: 'Schedule' },
   { id: 'results', label: 'Results' },
   { id: 'horses', label: 'Horses' },
 ]
+
+const activeIndex = computed(() => tabs.findIndex((tab) => tab.id === props.active))
 
 const list = useTemplateRef<HTMLElement>('list')
 
@@ -35,8 +40,9 @@ function onKeydown(event: KeyboardEvent, index: number) {
 </script>
 
 <template>
-  <!-- Mobile only: wider screens show every panel at once. -->
+  <!-- Phones only: wider screens show every panel at once. -->
   <div ref="list" class="tabs" role="tablist" aria-label="Details">
+    <SelectionPill :index="activeIndex" :count="tabs.length" />
     <button
       v-for="(tab, index) in tabs"
       :id="`tab-${tab.id}`"
@@ -56,27 +62,29 @@ function onKeydown(event: KeyboardEvent, index: number) {
 
 <style scoped>
 .tabs {
+  position: relative;
   display: none;
   gap: 2px;
   padding: 2px;
   border-radius: 10px;
-  background: var(--color-fill-disabled);
+  /* Unselected labels keep 4.5:1 on this fill, the same one the round picker uses. */
+  background: var(--color-fill);
 }
 
 button {
+  position: relative;
   flex: 1;
-  min-height: 40px;
+  min-height: 38px;
   border: 0;
   border-radius: 8px;
   background: transparent;
   color: var(--color-text-2);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   cursor: pointer;
+  transition: color 0.2s;
 }
 
 button[aria-selected='true'] {
-  background: var(--color-surface);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
   color: var(--color-text);
   font-weight: 600;
 }

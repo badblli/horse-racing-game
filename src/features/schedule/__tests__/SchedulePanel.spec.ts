@@ -36,27 +36,35 @@ describe('SchedulePanel', () => {
       ['done', 'racing', 'upcoming', 'upcoming', 'upcoming', 'upcoming'],
       [winner],
     )
-    const text = rows(panel).map((row) => row.attributes('aria-label'))
+    const text = rows(panel).map((row) => [row.get('.name').text(), row.get('.state').text()])
 
     expect(text).toHaveLength(6)
-    expect(text[0]).toBe(`Round 1, 1,200 m, ${horsesById.get(winner)!.name} won`)
-    expect(text[1]).toBe('Round 2, 1,400 m, Racing')
-    expect(text[5]).toBe('Round 6, 2,200 m, Upcoming')
+    expect(text[0]).toEqual(['Round 1 1,200 m', `${horsesById.get(winner)!.name} won`])
+    expect(text[1]).toEqual(['Round 2 1,400 m', 'Racing'])
+    expect(text[5]).toEqual(['Round 6 2,200 m', 'Upcoming'])
     expect(panel.text()).toContain('1 of 6 complete')
   })
 
-  it('opens the round on the track with its ten horses in lane order', () => {
-    const panel = mountPanel(['done', 'next', 'upcoming', 'upcoming', 'upcoming', 'upcoming'])
+  it('keeps every round closed until the user opens one', () => {
+    const panel = mountPanel(['done', 'racing', 'upcoming', 'upcoming', 'upcoming', 'upcoming'])
 
-    expect(expanded(panel)).toEqual(['false', 'true', 'false', 'false', 'false', 'false'])
+    expect(expanded(panel).every((value) => value === 'false')).toBe(true)
+    expect(panel.find('ul').exists()).toBe(false)
+  })
+
+  it('shows an opened round with its ten horses in lane order', async () => {
+    const panel = mountPanel(['done', 'next', 'upcoming', 'upcoming', 'upcoming', 'upcoming'])
+    await rows(panel)[1]!.trigger('click')
+
     const lineup = panel.findAll('ul li').map((item) => item.text())
     expect(lineup).toHaveLength(10)
     expect(lineup[0]).toBe(`1${horsesById.get(rounds[1]!.horseIds[0]!)!.name}`)
   })
 
-  it('lets the user open another round or close the open one', async () => {
+  it('opens one round at a time and closes it on a second click', async () => {
     const panel = mountPanel(['racing', 'upcoming', 'upcoming', 'upcoming', 'upcoming', 'upcoming'])
 
+    await rows(panel)[1]!.trigger('click')
     await rows(panel)[3]!.trigger('click')
     expect(expanded(panel)).toEqual(['false', 'false', 'false', 'true', 'false', 'false'])
 
@@ -64,7 +72,7 @@ describe('SchedulePanel', () => {
     expect(expanded(panel)).toEqual(['false', 'false', 'false', 'false', 'false', 'false'])
   })
 
-  it('follows the race again after a new schedule', async () => {
+  it('closes the open round after a new schedule', async () => {
     const panel = mountPanel(['racing', 'upcoming', 'upcoming', 'upcoming', 'upcoming', 'upcoming'])
     await rows(panel)[4]!.trigger('click')
 
@@ -74,11 +82,6 @@ describe('SchedulePanel', () => {
       roundStates: ['next', 'upcoming', 'upcoming', 'upcoming', 'upcoming', 'upcoming'],
     })
 
-    expect(expanded(panel)[0]).toBe('true')
-  })
-
-  it('opens nothing once every round is done', () => {
-    const panel = mountPanel(['done', 'done', 'done', 'done', 'done', 'done'])
     expect(expanded(panel).every((value) => value === 'false')).toBe(true)
   })
 })

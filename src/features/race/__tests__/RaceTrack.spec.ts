@@ -25,12 +25,11 @@ const lane = (n: number, overrides: Partial<TrackLane> = {}): TrackLane => ({
 })
 
 describe('RaceTrack', () => {
-  it('shows ten empty lanes and a note before a schedule exists', () => {
+  it('shows ten empty lanes before a schedule exists', () => {
     const track = mount(RaceTrack, { props: { lanes: [], phase: 'idle' } })
 
     expect(track.findAll('li')).toHaveLength(10)
     expect(track.findAll('svg')).toHaveLength(0)
-    expect(track.text()).toContain('No race scheduled')
   })
 
   it('places each horse by its progress along the run', () => {
@@ -56,6 +55,17 @@ describe('RaceTrack', () => {
     expect(second!.classes()).not.toContain('emphasised')
   })
 
+  it('gives the leader the first-place badge and no number to the rest', () => {
+    const track = mount(RaceTrack, {
+      props: { lanes: [lane(1), lane(2, { isLeader: true })], phase: 'running' },
+    })
+    const places = track.findAll('[data-testid="place"]')
+
+    expect(places.map((place) => place.text())).toEqual(['', '1'])
+    expect(places[1]!.classes()).toContain('first')
+    expect(places[0]!.classes()).not.toContain('first')
+  })
+
   it('shows the finishing places and marks the winner', () => {
     const track = mount(RaceTrack, {
       props: { lanes: [lane(1, { place: 2 }), lane(2, { place: 1 })], phase: 'running' },
@@ -66,6 +76,19 @@ describe('RaceTrack', () => {
     expect(places[1]!.classes()).toContain('first')
   })
 
+  it('marks each quarter of the round in meters', () => {
+    const track = mount(RaceTrack, { props: { lanes: [lane(1)], phase: 'ready', distance: 1400 } })
+    const marks = track.findAll('.mark')
+
+    expect(marks.map((mark) => mark.text())).toEqual(['350 m', '700 m', '1,050 m'])
+    expect(marks[1]!.attributes('style')).toContain('--share: 0.5')
+  })
+
+  it('shows no marks before a schedule exists', () => {
+    const track = mount(RaceTrack, { props: { lanes: [], phase: 'idle' } })
+    expect(track.find('.mark').exists()).toBe(false)
+  })
+
   it('freezes and dims the field while paused', () => {
     const track = mount(RaceTrack, { props: { lanes: [lane(1)], phase: 'paused' } })
     expect(track.classes()).toContain('paused')
@@ -73,21 +96,29 @@ describe('RaceTrack', () => {
 })
 
 describe('LaneKey', () => {
-  it('names every runner by lane and shows places once known', () => {
-    const key = mount(LaneKey, {
-      props: { lanes: [lane(1, { place: 1 }), lane(2, { place: 2 })] },
-    })
+  it('names every runner by lane before the race', () => {
+    const key = mount(LaneKey, { props: { runners: [lane(1), lane(2)], ranked: false } })
     const items = key.findAll('li')
 
-    expect(items).toHaveLength(2)
-    expect(items[0]!.text()).toBe('1Horse 11st')
-    expect(items[1]!.text()).toBe('2Horse 22')
+    expect(key.get('.key').attributes('aria-label')).toBe('Runners by lane')
+    expect(items.map((item) => item.text())).toEqual(['1Horse 1', '2Horse 2'])
+    expect(key.find('.position').exists()).toBe(false)
+  })
+
+  it('numbers the runners by position in a race, keeping their lane chips', () => {
+    const key = mount(LaneKey, { props: { runners: [lane(7), lane(2)], ranked: true } })
+    const items = key.findAll('li')
+
+    expect(key.get('.key').attributes('aria-label')).toBe('Runners in their current order')
+    expect(items.map((item) => item.text())).toEqual(['17Horse 7', '22Horse 2'])
+    expect(items[0]!.classes()).toContain('leading')
+    expect(items[1]!.classes()).not.toContain('leading')
   })
 
   it('renders nothing before a schedule exists', () => {
     expect(
-      mount(LaneKey, { props: { lanes: [] } })
-        .find('ul')
+      mount(LaneKey, { props: { runners: [], ranked: false } })
+        .find('li')
         .exists(),
     ).toBe(false)
   })

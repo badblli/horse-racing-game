@@ -51,6 +51,17 @@ function setup(options: RaceClockOptions = {}) {
   return { race, frames, scope, clock }
 }
 
+describe('useRaceClock start time', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+  })
+
+  it('resumes the current round from the given time', () => {
+    const { clock } = setup({ startTime: 30 })
+    expect(clock.time.value).toBe(30)
+  })
+})
+
 describe('useRaceClock', () => {
   beforeEach(() => {
     setActivePinia(createPinia())

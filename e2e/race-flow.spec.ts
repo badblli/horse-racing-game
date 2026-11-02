@@ -47,17 +47,69 @@ test.describe('race flow', () => {
     // Each result arrives after the one before it, never early.
     for (let round = 1; round <= ROUNDS; round++) {
       await expect(results.getByText(`${round} of ${ROUNDS}`)).toBeVisible({ timeout: 10_000 })
-      await expect(results.locator('.meta')).toContainText(`Round ${round} · `)
-      await expect(results.locator('.places li')).toHaveCount(9)
     }
 
     await expect(status(page)).toContainText('All six rounds are complete')
     await expect(button(page, 'Start race')).toBeDisabled()
     await expect(button(page, 'Generate schedule')).toHaveClass(/primary/)
-    await expect(results.getByRole('button', { name: /^Round \d$/ })).toHaveCount(ROUNDS)
-    for (const pick of await results.getByRole('button', { name: /^Round \d$/ }).all()) {
-      await expect(pick).toBeEnabled()
+    for (let round = 1; round <= ROUNDS; round++) {
+      await results.getByRole('button', { name: `Round ${round}`, exact: true }).click()
+      await expect(results.locator('.meta')).toContainText(`Round ${round} · `)
+      await expect(results.locator('.places li')).toHaveCount(9)
     }
+  })
+
+  test('shows the live order during a round and the result only after it', async ({ page }) => {
+    await page.goto('/?seed=1923&rate=30')
+    const results = region(page, 'Results')
+
+    await button(page, 'Generate schedule').click()
+    await button(page, 'Start race').click()
+
+    await expect(results.locator('.meta')).toContainText('Live')
+    await expect(results.locator('.order li')).toHaveCount(10)
+    await expect(results.locator('.time')).toHaveCount(0)
+    await expect(results.getByTestId('winner')).toHaveCount(0)
+
+    await expect(results.getByTestId('winner')).toBeVisible({ timeout: 10_000 })
+    await expect(results.locator('.order')).toHaveCount(0)
+    await expect(results.locator('.time')).toHaveCount(10)
+  })
+
+  test('a refresh brings the race back paused where it was', async ({ page }) => {
+    await page.goto('/?rate=30')
+    const names = () => region(page, 'Horses').locator('.name').allTextContents()
+    const results = region(page, 'Results')
+    const roster = await names()
+
+    await button(page, 'Generate schedule').click()
+    await button(page, 'Start race').click()
+    await expect(results.getByText('1 of 6')).toBeVisible({ timeout: 10_000 })
+    await expect(results.locator('.meta')).toContainText('Round 2 · ', { timeout: 10_000 })
+    await expect(results.locator('.order li')).toHaveCount(10)
+    await button(page, 'Pause').click()
+    const mover = page.locator('[data-lane="1"] .mover')
+    const place = await translateOf(mover)
+
+    await page.reload()
+
+    expect(await names()).toEqual(roster)
+    await expect(status(page)).toContainText('Paused')
+    await expect(page.locator('h2').first()).toContainText('Round 2')
+    await expect(results.getByText('1 of 6')).toBeVisible()
+    expect(Math.abs((await translateOf(mover)) - place)).toBeLessThan(1)
+
+    await button(page, 'Resume').click()
+    await expect.poll(() => translateOf(mover)).toBeGreaterThan(place)
+  })
+
+  test('a refresh before any schedule draws new horses', async ({ page }) => {
+    await page.goto('/?rate=30')
+    const names = () => region(page, 'Horses').locator('.name').allTextContents()
+    const roster = await names()
+
+    await page.reload()
+    expect(await names()).not.toEqual(roster)
   })
 
   test('pause freezes the horses and resume carries on', async ({ page }) => {

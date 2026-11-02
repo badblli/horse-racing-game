@@ -35,6 +35,29 @@ export default defineConfig({
       },
       testIgnore: /visual\.spec\.ts/,
     },
+    {
+      name: 'firefox',
+      use: {
+        ...devices['Desktop Firefox'],
+      },
+      testIgnore: /(visual|a11y)\.spec\.ts/,
+    },
+    {
+      name: 'webkit',
+      use: {
+        ...devices['Desktop Safari'],
+      },
+      testIgnore: /(visual|a11y)\.spec\.ts/,
+    },
+    /* A real phone profile for the phone layout: touch, Safari's engine and its viewport units. */
+    {
+      name: 'iphone',
+      use: {
+        ...devices['iPhone 15'],
+      },
+      testMatch: /layout\.spec\.ts/,
+      grep: /phone/,
+    },
     /* Screenshots differ between operating systems, so the baselines are made and checked in the
        Playwright Linux image only: `npm run test:visual` locally, and the visual job in CI. */
     {

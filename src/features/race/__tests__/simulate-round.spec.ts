@@ -6,7 +6,7 @@ import { createRng } from '@/shared/lib/random'
 
 import type { RoundSimulation } from '../model/race'
 import { simulateRound } from '../model/simulate-round'
-import { distanceAt, leaderAt, placingsOf } from '../model/standings'
+import { distanceAt, leaderAt, placingsOf, rankAt } from '../model/standings'
 
 /** Ten horses with conditions 10, 20, … 100, running in that lane order. */
 const horses: Horse[] = Array.from({ length: 10 }, (_, i) => ({
@@ -133,6 +133,39 @@ describe('placingsOf', () => {
     }
 
     expect(placingsOf(simulation).map((placing) => placing.horseId)).toEqual(['b', 'c', 'a'])
+  })
+})
+
+describe('rankAt', () => {
+  const simulation = simulateRound(round, horsesById, createRng(5))
+
+  it('orders the runners by distance covered at any moment', () => {
+    for (const time of [1, simulation.duration / 3, simulation.duration / 2]) {
+      const distances = rankAt(simulation, time).map((runner) => distanceAt(runner, time))
+      expect(distances).toEqual([...distances].sort((a, b) => b - a))
+      expect(distances).toHaveLength(10)
+    }
+  })
+
+  it('ends in the finishing order and starts with the eventual winner', () => {
+    const ids = (runners: readonly { horseId: string }[]) => runners.map((runner) => runner.horseId)
+    const placings = placingsOf(simulation)
+
+    expect(ids(rankAt(simulation, simulation.duration))).toEqual(ids(placings))
+    expect(rankAt(simulation, 0)[0]!.horseId).toBe(placings[0]!.horseId)
+  })
+
+  it('keeps a finished runner ahead of those still running', () => {
+    const [first, second] = placingsOf(simulation)
+    const justAfter = first!.finishTime + (second!.finishTime - first!.finishTime) / 2
+
+    expect(rankAt(simulation, justAfter)[0]!.horseId).toBe(first!.horseId)
+  })
+
+  it('leaves the simulation untouched', () => {
+    const lanes = simulation.runners.map((runner) => runner.lane)
+    rankAt(simulation, simulation.duration / 2)
+    expect(simulation.runners.map((runner) => runner.lane)).toEqual(lanes)
   })
 })
 

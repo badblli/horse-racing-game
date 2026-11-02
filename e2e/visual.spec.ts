@@ -3,11 +3,11 @@ import { test, expect, type Page } from '@playwright/test'
 // A fixed seed gives the same horses every run; rate 600 plays the whole programme in a few seconds.
 const URL = '/?seed=1923&rate=600'
 
-// The layout depends on width only. The mobile viewport is tall enough for the whole page, because
-// a full-page capture would otherwise draw the fixed action bar halfway down.
+// Each size shows the whole game on one screen, so the viewport is the full picture.
 const sizes = [
   { name: 'desktop', viewport: { width: 1440, height: 900 } },
-  { name: 'mobile', viewport: { width: 390, height: 1600 } },
+  { name: 'laptop', viewport: { width: 1366, height: 768 } },
+  { name: 'mobile', viewport: { width: 390, height: 844 } },
 ] as const
 
 const button = (page: Page, name: string) => page.getByRole('button', { name, exact: true })
@@ -25,7 +25,7 @@ for (const { name, viewport } of sizes) {
     })
 
     test('initial', async ({ page }) => {
-      await expect(page).toHaveScreenshot(`initial-${name}.png`, { fullPage: true })
+      await expect(page).toHaveScreenshot(`initial-${name}.png`)
     })
 
     test('scheduled', async ({ page }) => {
@@ -35,7 +35,7 @@ for (const { name, viewport } of sizes) {
       )
       await settle(page)
 
-      await expect(page).toHaveScreenshot(`scheduled-${name}.png`, { fullPage: true })
+      await expect(page).toHaveScreenshot(`scheduled-${name}.png`)
     })
 
     test('finished', async ({ page }) => {
@@ -46,7 +46,7 @@ for (const { name, viewport } of sizes) {
       })
       await settle(page)
 
-      await expect(page).toHaveScreenshot(`finished-${name}.png`, { fullPage: true })
+      await expect(page).toHaveScreenshot(`finished-${name}.png`)
     })
   })
 }

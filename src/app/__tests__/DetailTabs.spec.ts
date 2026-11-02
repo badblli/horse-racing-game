@@ -10,35 +10,48 @@ describe('DetailTabs', () => {
     const wrapper = mount(DetailTabs, { props: { active: 'results' } })
     const tabs = tabsOf(wrapper)
 
-    expect(tabs.map((tab) => tab.text())).toEqual(['Schedule', 'Results', 'Horses'])
-    expect(tabs.map((tab) => tab.attributes('aria-selected'))).toEqual(['false', 'true', 'false'])
-    expect(tabs.map((tab) => tab.attributes('tabindex'))).toEqual(['-1', '0', '-1'])
-    expect(tabs[1]!.attributes('aria-controls')).toBe('panel-results')
+    expect(tabs.map((tab) => tab.text())).toEqual(['Race', 'Schedule', 'Results', 'Horses'])
+    expect(tabs.map((tab) => tab.attributes('aria-selected'))).toEqual([
+      'false',
+      'false',
+      'true',
+      'false',
+    ])
+    expect(tabs.map((tab) => tab.attributes('tabindex'))).toEqual(['-1', '-1', '0', '-1'])
+    expect(tabs[2]!.attributes('aria-controls')).toBe('panel-results')
+  })
+
+  it('slides the selection to the active tab', () => {
+    const wrapper = mount(DetailTabs, { props: { active: 'results' } })
+    const pill = wrapper.get('.pill').attributes('style')
+
+    expect(pill).toContain('--index: 2')
+    expect(pill).toContain('--count: 4')
   })
 
   it('selects a tab on click', async () => {
     const wrapper = mount(DetailTabs, { props: { active: 'schedule' } })
-    await tabsOf(wrapper)[2]!.trigger('click')
+    await tabsOf(wrapper)[3]!.trigger('click')
 
     expect(wrapper.emitted('select')).toEqual([['horses']])
   })
 
   it('moves between tabs with the arrow, Home and End keys', async () => {
-    const wrapper = mount(DetailTabs, { props: { active: 'schedule' } })
-    const [schedule, , horses] = tabsOf(wrapper)
+    const wrapper = mount(DetailTabs, { props: { active: 'race' } })
+    const [race, , , horses] = tabsOf(wrapper)
 
-    await schedule!.trigger('keydown', { key: 'ArrowRight' })
-    await schedule!.trigger('keydown', { key: 'ArrowLeft' })
+    await race!.trigger('keydown', { key: 'ArrowRight' })
+    await race!.trigger('keydown', { key: 'ArrowLeft' })
     await horses!.trigger('keydown', { key: 'ArrowRight' })
     await horses!.trigger('keydown', { key: 'Home' })
-    await schedule!.trigger('keydown', { key: 'End' })
-    await schedule!.trigger('keydown', { key: 'Enter' })
+    await race!.trigger('keydown', { key: 'End' })
+    await race!.trigger('keydown', { key: 'Enter' })
 
     expect(wrapper.emitted('select')).toEqual([
-      ['results'],
+      ['schedule'],
       ['horses'],
-      ['schedule'],
-      ['schedule'],
+      ['race'],
+      ['race'],
       ['horses'],
     ])
   })

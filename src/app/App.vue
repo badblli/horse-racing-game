@@ -1,37 +1,45 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 
 import HorseRoster from '@/features/horses/components/HorseRoster.vue'
 import { useHorsesStore } from '@/features/horses/store'
 import RaceStage from '@/features/race/components/RaceStage.vue'
 import ResultsPanel from '@/features/race/components/ResultsPanel.vue'
+import { useRaceClock } from '@/features/race/composables/useRaceClock'
+import { useSavedRace } from '@/features/race/composables/useSavedRace'
 import { useRaceStore } from '@/features/race/store'
 import SchedulePanel from '@/features/schedule/components/SchedulePanel.vue'
 
 import AppHeader from './AppHeader.vue'
 import DetailTabs, { type DetailTab } from './DetailTabs.vue'
 
-defineProps<{
+const props = defineProps<{
   /** Race seconds per real second; only the e2e build changes it. */
   playbackRate?: number
+  /** Race seconds to resume a restored round from. */
+  startTime?: number
 }>()
 
 const race = useRaceStore()
 const horses = useHorsesStore()
+// Owned here because more than one panel reads the race time.
+const { time } = useRaceClock({ rate: props.playbackRate, startTime: props.startTime })
+useSavedRace(time)
 
-/** The mobile tab the user picked; null follows the race. */
-const chosenTab = ref<DetailTab | null>(null)
+/** The panel a phone shows; wider screens show them all. */
+const activeTab = ref<DetailTab>('race')
 
-// Results come forward while a finished round holds the track; the schedule otherwise.
-const followedTab = computed<DetailTab>(() =>
-  race.roundStates[race.currentRoundIndex] === 'done' ? 'results' : 'schedule',
-)
-const activeTab = computed(() => chosenTab.value ?? followedTab.value)
-
+// A new schedule or a running race brings a phone back to the track.
 watch(
   () => race.schedule,
   () => {
-    chosenTab.value = null
+    activeTab.value = 'race'
+  },
+)
+watch(
+  () => race.status,
+  (status) => {
+    if (status === 'running') activeTab.value = 'race'
   },
 )
 </script>
@@ -40,13 +48,24 @@ watch(
   <div class="app">
     <AppHeader />
     <main class="layout">
-      <div class="stage"><RaceStage :rate="playbackRate" /></div>
-      <DetailTabs class="tabs" :active="activeTab" @select="chosenTab = $event" />
+      <DetailTabs class="tabs" :active="activeTab" @select="activeTab = $event" />
+      <div
+        id="panel-race"
+        class="stage"
+        :class="{ active: activeTab === 'race' }"
+        role="tabpanel"
+        aria-labelledby="tab-race"
+        data-testid="detail-panel"
+      >
+        <RaceStage :time="time" />
+      </div>
       <div class="side">
         <div
           id="panel-schedule"
           class="schedule"
           :class="{ active: activeTab === 'schedule' }"
+          role="tabpanel"
+          aria-labelledby="tab-schedule"
           data-testid="detail-panel"
         >
           <SchedulePanel
@@ -60,15 +79,19 @@ watch(
           id="panel-results"
           class="results"
           :class="{ active: activeTab === 'results' }"
+          role="tabpanel"
+          aria-labelledby="tab-results"
           data-testid="detail-panel"
         >
-          <ResultsPanel />
+          <ResultsPanel :time="time" />
         </div>
       </div>
       <div
         id="panel-horses"
         class="horses"
         :class="{ active: activeTab === 'horses' }"
+        role="tabpanel"
+        aria-labelledby="tab-horses"
         data-testid="detail-panel"
       >
         <HorseRoster
@@ -117,6 +140,60 @@ watch(
   min-width: 0;
 }
 
+/* Laptops and desktops: horses, track, schedule and results fit one screen with no page scroll. */
+@media (min-width: 1180px) and (min-height: 640px) {
+  .app {
+    display: flex;
+    flex-direction: column;
+    max-width: 1760px;
+    height: 100dvh;
+    padding: 0 var(--space-4) var(--space-4);
+    overflow: hidden;
+  }
+
+  .layout {
+    flex: 1;
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-columns: 300px minmax(0, 1fr) 330px;
+    grid-template-areas: 'horses stage side';
+    gap: var(--space-4);
+    align-items: stretch;
+  }
+
+  .layout > .stage,
+  .schedule,
+  .results,
+  .horses {
+    display: flex;
+    min-height: 0;
+  }
+
+  /* Each panel fills its slot and scrolls inside it if a slot ever runs short. */
+  .layout > .stage > *,
+  .schedule > *,
+  .results > *,
+  .horses > * {
+    flex: 1;
+    min-width: 0;
+    overflow-y: auto;
+  }
+
+  .side {
+    gap: var(--space-4);
+    min-height: 0;
+  }
+
+  .schedule {
+    flex: none;
+    max-height: 62%;
+  }
+
+  .results {
+    flex: 1;
+  }
+}
+
 /* Tablet: the track spans the width, schedule and results side by side under it. */
 @media (max-width: 1023px) {
   .app {
@@ -147,30 +224,61 @@ watch(
   }
 }
 
-/* Mobile: one column, and the three detail panels share a tab control. */
+@keyframes panel-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Phones: one panel at a time, chosen from a menu fixed above the action bar. */
 @media (max-width: 599px) {
   .app {
-    /* Room for the action bar fixed to the bottom of the screen. */
-    padding: 0 var(--space-4) 108px;
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    padding: 0;
   }
 
   .layout {
+    flex: 1;
+    min-height: 0;
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      'stage'
-      'tabs'
-      'panel';
-    gap: var(--space-4);
+    grid-template-areas: 'panel';
+    gap: 0;
+    /* Room for the menu and the action bar. */
+    padding: 0 var(--space-4) 132px;
+    overflow-y: auto;
   }
 
-  .tabs {
-    grid-area: tabs;
+  .layout > .tabs {
+    position: fixed;
+    right: var(--space-4);
+    bottom: calc(82px + env(safe-area-inset-bottom, 0px));
+    left: var(--space-4);
+    z-index: 5;
+    /* Hides the panel scrolling past behind the menu. */
+    box-shadow: 0 0 0 8px var(--color-bg);
   }
 
+  .layout > .stage,
   .schedule,
   .results,
   .horses {
     grid-area: panel;
+  }
+
+  /* The stage stays mounted so the race keeps running; its action bar stays visible on its own. */
+  .layout > .stage.active,
+  .schedule.active,
+  .results.active,
+  .horses.active {
+    animation: panel-in 0.22s ease-out;
+  }
+
+  .layout > .stage:not(.active) {
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
   }
 
   .schedule:not(.active),

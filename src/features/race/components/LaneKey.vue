@@ -1,33 +1,40 @@
 <script setup lang="ts">
+import type { Horse } from '@/features/horses/model/horse'
 import ColorChip from '@/shared/components/ColorChip.vue'
 
-import type { TrackLane } from '../model/race'
-
-defineProps<{ lanes: readonly TrackLane[] }>()
+defineProps<{
+  runners: readonly { readonly lane: number; readonly horse: Horse }[]
+  /** True once the runners arrive in the current order, the leader first. */
+  ranked: boolean
+}>()
 </script>
 
 <template>
-  <!-- On narrow screens the lanes show numbers only; this key names every runner. -->
-  <ul v-if="lanes.length" class="key" aria-label="Runners by lane">
+  <!-- On phones the track shows lane numbers only; this names the runners and, in a race, their order. -->
+  <ol
+    v-if="runners.length"
+    class="key"
+    :aria-label="ranked ? 'Runners in their current order' : 'Runners by lane'"
+  >
     <li
-      v-for="item in lanes"
+      v-for="(item, index) in runners"
       :key="item.lane"
-      :class="{ emphasised: item.isLeader || item.place === 1 }"
+      :class="{ leading: ranked && index === 0 }"
     >
+      <span v-if="ranked" class="position">{{ index + 1 }}</span>
       <ColorChip :color="item.horse.color.hex" :label="item.lane" />
       <span class="name" lang="tr">{{ item.horse.name }}</span>
-      <span v-if="item.place !== null" class="place" :class="{ first: item.place === 1 }">
-        {{ item.place === 1 ? '1st' : item.place }}
-      </span>
     </li>
-  </ul>
+  </ol>
 </template>
 
 <style scoped>
-/* Shown only on narrow screens; the responsive layout switches it on. */
+/* Shown only on phones; the responsive layout switches it on. Reads down each column, 1 to 10. */
 .key {
   display: none;
-  grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(5, auto);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-flow: column;
   gap: 6px var(--space-3);
   margin: 0;
   padding: 0;
@@ -37,9 +44,17 @@ defineProps<{ lanes: readonly TrackLane[] }>()
 .key li {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 6px;
   min-width: 0;
   font-size: 0.84rem;
+}
+
+.position {
+  flex: none;
+  width: 16px;
+  color: var(--color-text-2);
+  font-size: 0.8rem;
+  text-align: right;
 }
 
 .name {
@@ -48,18 +63,12 @@ defineProps<{ lanes: readonly TrackLane[] }>()
   white-space: nowrap;
 }
 
-.emphasised .name {
+.leading .position {
+  color: var(--color-accent);
   font-weight: 600;
 }
 
-.place {
-  margin-left: auto;
-  color: var(--color-text-2);
-  font-size: 0.8rem;
-}
-
-.place.first {
-  color: var(--color-accent);
+.leading .name {
   font-weight: 600;
 }
 

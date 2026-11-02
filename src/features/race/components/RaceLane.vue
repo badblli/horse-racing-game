@@ -29,16 +29,35 @@ withDefaults(
         <HorseFigure :color="horse.color.hex" :lane="lane" :galloping="galloping" />
       </div>
     </div>
-    <span class="place" :class="{ first: place === 1 }" data-testid="place">{{ place ?? '' }}</span>
+    <!-- The leader wears the winner's badge; the rest of the order is in the Results panel. -->
+    <span class="place" :class="{ first: place === 1 || isLeader }" data-testid="place">{{
+      place ?? (isLeader ? 1 : '')
+    }}</span>
   </li>
 </template>
 
 <style scoped>
+/* Set on every frame. Not inherited, so a new value never restyles the whole horse inside the mover. */
+@property --progress {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
 .lane {
   display: grid;
   grid-template-columns: 196px minmax(0, 1fr) 40px;
   align-items: center;
   height: 42px;
+  /* A new round fades in, which also hides the horses going back to the start. */
+  animation: fade-in 0.32s ease-out;
+  transition: background 0.3s ease;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
 }
 
 .lane + .lane {
@@ -56,18 +75,23 @@ withDefaults(
 .name {
   overflow: hidden;
   font-size: 0.88rem;
+  transition: color 0.3s ease;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.emphasised {
+  background: var(--color-accent-soft);
+}
+
 .emphasised .name {
+  color: var(--color-accent);
   font-weight: 600;
 }
 
 .run {
   position: relative;
   height: 100%;
-  border-right: 2px solid rgb(29 29 31 / 0.55);
   border-left: 1px solid var(--color-track-line);
 }
 
@@ -101,6 +125,14 @@ withDefaults(
   background: var(--color-accent);
   color: #fff;
   font-weight: 600;
+  /* Runs each time the badge lands on a new lane. */
+  animation: badge-pop 0.32s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+
+@keyframes badge-pop {
+  from {
+    transform: scale(0.6);
+  }
 }
 
 /* Column widths match the track caption in RaceTrack. */
@@ -114,7 +146,7 @@ withDefaults(
 @media (max-width: 599px) {
   .lane {
     grid-template-columns: 40px minmax(0, 1fr) 30px;
-    height: 34px;
+    height: 31px;
   }
 
   .label {
@@ -133,6 +165,14 @@ withDefaults(
     width: 42px;
     height: 28px;
     margin-top: -16px;
+  }
+}
+
+@media (min-width: 1180px) and (min-height: 640px) {
+  .lane {
+    flex: 1;
+    height: auto;
+    min-height: 0;
   }
 }
 </style>

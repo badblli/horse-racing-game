@@ -23,3 +23,19 @@ export function readableInk(background: string): string {
     ? LIGHT_INK
     : DARK_INK
 }
+
+/** `hex`, darkened only as far as it takes to read as text on `background` (WCAG AA, 4.5:1). */
+export function readableText(hex: string, background: string = LIGHT_INK): string {
+  const channels = [1, 3, 5].map((start) => parseInt(hex.slice(start, start + 2), 16))
+  for (let factor = 1; factor > 0; factor -= 0.01) {
+    const candidate = `#${channels
+      .map((value) =>
+        Math.round(value * factor)
+          .toString(16)
+          .padStart(2, '0'),
+      )
+      .join('')}`
+    if (contrastRatio(candidate, background) >= 4.5) return candidate
+  }
+  return DARK_INK
+}

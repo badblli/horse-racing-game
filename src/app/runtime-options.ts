@@ -6,6 +6,8 @@ export interface RuntimeOptions {
   readonly seed: number
   /** Race seconds per real second. */
   readonly rate: number
+  /** Whether a race saved before a refresh may come back. A test's fixed seed always wins. */
+  readonly restore: boolean
 }
 
 /**
@@ -16,7 +18,7 @@ export function readRuntimeOptions(
   search = window.location.search,
   testHooks = import.meta.env.VITE_TEST_HOOKS === 'true',
 ): RuntimeOptions {
-  const defaults = { seed: randomSeed(), rate: PLAYBACK_RATE }
+  const defaults = { seed: randomSeed(), rate: PLAYBACK_RATE, restore: true }
   if (!testHooks) return defaults
 
   const params = new URLSearchParams(search)
@@ -27,5 +29,6 @@ export function readRuntimeOptions(
   return {
     seed: Number.isInteger(seed) && seed >= 0 && seed <= 0xffffffff ? seed : defaults.seed,
     rate: Number.isFinite(rate) && rate > 0 ? rate : defaults.rate,
+    restore: !params.has('seed'),
   }
 }
